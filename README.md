@@ -1,2 +1,2 @@
 # cloud-tracking
-The best senior design project on this gosh darn planet.
+The best gosh darn senior design the world has ever seen.
