@@ -1,4 +1,0 @@
-﻿  pch.cpp
-  cloud_coverage.cpp
-c:\opencv\opencv\build\include\opencv2\imgcodecs.hpp(46): fatal error C1083: Cannot open include file: 'opencv2/core.hpp': No such file or directory
-C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(423,5): error MSB6006: "CL.exe" exited with code 2.
