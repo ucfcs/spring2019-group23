@@ -12,12 +12,12 @@ def calc_hue(i, r, g, b):
             return 1e9
     elif (g < b):
         try:
-            return ((b - r) / (i - (3 * r))) + 1
+            return ((b - r) / (i - (3 * r))) + 2
         except:
             return 1e9
     else:
         try:
-            return ((b - r) / (i - (3 * r))) + 1
+            return ((b - r) / (i - (3 * r)))
         except:
             return 1e9
 

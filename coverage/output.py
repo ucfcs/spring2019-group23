@@ -21,7 +21,6 @@ def calc_hue(i, r, g, b):
         except:
             return 1e9
 
-
 def calc_sat(i, h, r, g, b):
     if (h <= 1):
         return (i - (3 * b)) / i
