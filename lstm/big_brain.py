@@ -1,4 +1,3 @@
-# first neural network with keras tutorial
 # from keras.models import Sequential
 # from keras.layers import Dense
 import pandas as pd
@@ -29,10 +28,12 @@ def scatter_plot(feature, target):
 def mean_square_error(Y_true, Y_pred):
     return np.square(np.subtract(Y_true,Y_pred)).mean() 
 
-x = df.drop(['pwr_out'], axis=1)
-x_test = test.drop(['pwr_out'], axis=1)
-y = df['pwr_out'].values.reshape(-1, 1)
+x = df.drop(['pwr_out'], axis=1).values
+x_test = test.drop(['pwr_out'], axis=1).values
+y = df['pwr_out'].values
+y_true = test['pwr_out'].values
 
+# Normalize the data from -1 to 1
 
 ###################### LASSO PREDICTION ######################
 # lasso = Lasso()
@@ -58,16 +59,16 @@ y = df['pwr_out'].values.reshape(-1, 1)
 ###################### LASSO PREDICTION ######################
 
 ###################### MLPRegressor PREDICTION ######################
-mlp = MLPRegressor()
-mlp.fit(x,y)
+mlp = MLPRegressor(solver='lbfgs', alpha=1, hidden_layer_sizes=(1000,), random_state=1)
+mlp.fit(x, y)
 
-pred = np.asarray(mlp.predict(x_test), dtype=np.float32)
+pred = np.asarray(np.around(mlp.predict(x_test), 2), dtype=np.float32)
 
-results = {'Prediction': np.around(pred, decimals=2),
-           'Actual': test.pwr_out.values}
+results = {'Prediction': pred,
+           'Actual': y_true}
 
 res = pd.DataFrame(results)
 print(res)
 print()
-print("MSE: " + str(mean_square_error(res.Actual.values, res.Prediction.values)))
+print("MSE: " + str(mean_square_error(y_true, pred)))
 ###################### MLPRegressor PREDICTION ######################
