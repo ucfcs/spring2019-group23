@@ -1,14 +1,16 @@
-# from keras.models import Sequential
-# from keras.layers import Dense
-import pandas as pd
-
-from sklearn.datasets import make_regression
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from sklearn.model_selection import GridSearchCV
+import pandas as pd
+import pickle
+import seaborn as sns; sns.set()
 from sklearn.linear_model import Lasso
+from sklearn.model_selection import GridSearchCV
 from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import MinMaxScaler
 
+# Pathways
+OUC = 'data/power-irradiance.csv'
 TRAIN = 'data/final-orlando-report-train.csv'
 TEST  = 'data/final-orlando-report-test.csv'
 
@@ -17,23 +19,41 @@ df = pd.read_csv(TRAIN)
 test = pd.read_csv(TEST)
 
 # Function to make it easier to display graphs
-def scatter_plot(feature, target):
+def scatter_plot(x, y):
     plt.figure(figsize=(16,8))
-    plt.scatter(df[feature], df[target], c='black', s=.5)
-    plt.ylabel("Power Output (MW)")
-    plt.xlabel("Irradiance")
+    plt.scatter(df[x], df[y], s=.5)
+    plt.xlabel(x)
+    plt.ylabel(y)
     plt.show()
 
-# Function to calculate the MSE
+def scatter_plot_3d(x, y, z):
+    fig = plt.figure(figsize=(16,8))
+    ax = fig.add_subplot(111, projection='3d')
+    plt.scatter(df[x], df[y], df[z], s=.5)
+    plt.xlabel(x)
+    plt.ylabel(y)
+    plt.show()
+
+# scatter_plot('irdnc', 'pwr_out')
+
+# Used to quantify how good our predictions are
 def mean_square_error(Y_true, Y_pred):
-    return np.square(np.subtract(Y_true,Y_pred)).mean() 
+    return round(np.square(np.subtract(Y_true,Y_pred)).mean(), 4) 
 
-x = df.drop(['pwr_out'], axis=1).values
-x_test = test.drop(['pwr_out'], axis=1).values
-y = df['pwr_out'].values
-y_true = test['pwr_out'].values
+# Normalize the data
+scaler = MinMaxScaler(feature_range=(-1, 1))
+norm_df = scaler.fit_transform(df)
+norm_test = scaler.fit_transform(test)
+x = np.delete(norm_df, 0, 1)
+x_test = np.delete(norm_test, 0, 1)
+y = norm_df[:, 0]
+y_true = norm_test[:, 0]
 
-# Normalize the data from -1 to 1
+# If Using pandas, this data is not normalized
+# x = df.drop(['pwr_out'], axis=1).values
+# x_test = test.drop(['pwr_out'], axis=1).values
+# y = df['pwr_out'].values
+# y_true = test['pwr_out'].values
 
 ###################### LASSO PREDICTION ######################
 # lasso = Lasso()
@@ -58,11 +78,16 @@ y_true = test['pwr_out'].values
 # print("MSE: " + str(mean_square_error(res.Prediction.values, res.Actual.values)))
 ###################### LASSO PREDICTION ######################
 
-###################### MLPRegressor PREDICTION ######################
-mlp = MLPRegressor(solver='lbfgs', alpha=1, hidden_layer_sizes=(1000,), random_state=1)
-mlp.fit(x, y)
+################### MLPRegressor PREDICTION ##################
+filename = 'mlp_regressor.sav'
 
-pred = np.asarray(np.around(mlp.predict(x_test), 2), dtype=np.float32)
+mlp = MLPRegressor(solver='lbfgs', activation='tanh', alpha=1, hidden_layer_sizes=(100, 100, 100, 100), random_state=1, verbose=True)
+mlp.fit(x, y)
+# mlp = pickle.load(open(filename, 'rb'))
+
+pred = np.asarray(np.around(mlp.predict(x_test), 6), dtype=np.float32)
+# pred[pred >  1] = 1
+# pred[pred < -1] = -1
 
 results = {'Prediction': pred,
            'Actual': y_true}
@@ -70,5 +95,7 @@ results = {'Prediction': pred,
 res = pd.DataFrame(results)
 print(res)
 print()
-print("MSE: " + str(mean_square_error(y_true, pred)))
-###################### MLPRegressor PREDICTION ######################
+print("loss = " + str(mean_square_error(y_true, pred)))
+
+pickle.dump(mlp, open(filename, 'wb'))
+################### MLPRegressor PREDICTION ##################
