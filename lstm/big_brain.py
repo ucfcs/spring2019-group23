@@ -37,8 +37,8 @@ def scatter_plot_3d(x, y, z):
 # scatter_plot('irdnc', 'pwr_out')
 
 # Used to quantify how good our predictions are
-def mean_square_error(Y_true, Y_pred):
-    return round(np.square(np.subtract(Y_true,Y_pred)).mean(), 4) 
+def mean_square_error(Y_test, Y_pred):
+    return round(np.square(np.subtract(Y_test,Y_pred)).mean(), 4) 
 
 # Normalize the data
 scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -47,13 +47,13 @@ norm_test = scaler.fit_transform(test)
 x = np.delete(norm_df, 0, 1)
 x_test = np.delete(norm_test, 0, 1)
 y = norm_df[:, 0]
-y_true = norm_test[:, 0]
+y_test = test['pwr_out']
 
 # If Using pandas, this data is not normalized
 # x = df.drop(['pwr_out'], axis=1).values
 # x_test = test.drop(['pwr_out'], axis=1).values
 # y = df['pwr_out'].values
-# y_true = test['pwr_out'].values
+# y_test = test['pwr_out'].values
 
 ###################### LASSO PREDICTION ######################
 # lasso = Lasso()
@@ -81,21 +81,21 @@ y_true = norm_test[:, 0]
 ################### MLPRegressor PREDICTION ##################
 filename = 'mlp_regressor.sav'
 
-mlp = MLPRegressor(solver='lbfgs', activation='tanh', alpha=1, hidden_layer_sizes=(100, 100, 100, 100), random_state=1, verbose=True)
-mlp.fit(x, y)
-# mlp = pickle.load(open(filename, 'rb'))
+# mlp = MLPRegressor(solver='lbfgs', activation='tanh', alpha=1, hidden_layer_sizes=(100, 100, 100, 100), random_state=1, verbose=True)
+# mlp.fit(x, y)
+mlp = pickle.load(open(filename, 'rb'))
 
 pred = np.asarray(np.around(mlp.predict(x_test), 6), dtype=np.float32)
-# pred[pred >  1] = 1
-# pred[pred < -1] = -1
 
-results = {'Prediction': pred,
-           'Actual': y_true}
+test.pwr_out = pred
+scaler.inverse_transform(test)
+results = {'Prediction': test.pwr_out,
+           'Actual': y_test}
 
 res = pd.DataFrame(results)
 print(res)
 print()
-print("loss = " + str(mean_square_error(y_true, pred)))
+print("loss = " + str(mean_square_error(y_test, pred)))
 
 pickle.dump(mlp, open(filename, 'wb'))
 ################### MLPRegressor PREDICTION ##################
