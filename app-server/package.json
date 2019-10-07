@@ -1,0 +1,31 @@
+{
+  "name": "cloud-tracking-app-server",
+  "version": "1.0.0",
+  "description": "Application server for the best gosh darn senior design project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ucfcs/spring2019-group23.git"
+  },
+  "keywords": [
+    "rest",
+    "api"
+  ],
+  "author": "Group 23",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ucfcs/spring2019-group23/issues"
+  },
+  "homepage": "https://github.com/ucfcs/spring2019-group23#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.7.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.2"
+  }
+}
