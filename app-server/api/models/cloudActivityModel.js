@@ -10,17 +10,6 @@ const schemaOptions  = {
     }
 };
 
-var CloudMotionImageSchema = new Schema({
-    data: {
-        type: Buffer,
-        required: true
-    },
-    contentType: {
-        type: String,
-        required: true
-    }
-}, schemaOptions);
-
 var CloudActivitySchema = new Schema({
     // Weather data also, depending on what is used on power prediction
     powerPrediction: {

@@ -1,14 +1,37 @@
 import time
 import sys
+import requests
+import cv2
+import numpy as np
+
 from os import listdir
 from os.path import isfile, join
 
-import cv2
-import numpy as np
 from opticalFlow import opticalDense
 from coverage import coverage
-
 current_milli_time = lambda: int(round(time.time() * 1000))
+
+# FLAGS -- used to test different functionalities
+display_images = True
+send_images = False
+
+def send_flow(frame, alert):
+    if send_images is False:
+        return
+
+    # Encode our frame into a JPG
+    _, encoded_img = cv2.imencode(".jpg", frame)
+    
+    # Generate payload
+    file = { 'file': ('flow.jpg', encoded_img, 'image/jpeg') }
+    payload = { 'alert': alert }
+
+    # POST payload to /motion route
+    res = requests.post('http://localhost:3000/motion', payload, files=file)
+
+    # for fun
+    print(res.content)
+
 
 def experiment_step(frame1, frame2):
     # Run cloud detection (grayscale image)
@@ -18,10 +41,16 @@ def experiment_step(frame1, frame2):
     # Find the flow image for the prev and next images
     flow = opticalDense.calculate_opt_dense(prev, next)
 
+    # TODO: Generate alert... here?
+    alert = "for fun"
+    send_flow(flow, alert)
+
     # Return experiment step
     return (prev, next, flow)
 
 def experiment_display(prev, next, flow):
+    if display_images is False:
+        return
     # Resize the images for visibility
     flow_show = cv2.resize(flow, (400, 400))
     prev_show = cv2.resize(prev, (400, 400))

@@ -1,9 +1,12 @@
 'use strict';
-module.exports = function(app) {
-  var cloudActivity = require('../controllers/cloudActivityController');
+var express = require('express'),
+    cloudActivity = require('../controllers/cloudActivityController');
 
-  // cloudActivity Routes
-  app.route('/api/activity')
-    .get(cloudActivity.get_all_activity)
-    .post(cloudActivity.create_activity);
-};
+var router = express.Router();
+
+// cloudActivity Routes
+router.route('/')
+  .get(cloudActivity.get_all_activity)
+  .post(cloudActivity.create_activity);
+
+module.exports = router;
