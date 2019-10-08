@@ -48,5 +48,7 @@ def cloud_recognition(img):
     # Change values to make output prettier
     sat = np.where(sat > 0.1, 0, sat * 2)
 
+    sat = sat.astype(np.float32)
+
     # Return the image in the same format, in which it was inputted
     return cv2.cvtColor(sat, cv2.COLOR_GRAY2BGR)
