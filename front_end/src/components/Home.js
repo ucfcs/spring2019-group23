@@ -1,7 +1,14 @@
 import React, { Component } from 'react';
 import { Row, Col, Card, Alert} from 'react-bootstrap';
+import JsmpegPlayer from './JsmpegPlayer';
 //import Livefeed from './Livefeed';
 //import Cloudmotion from './Cloudmotion';
+
+const videoOptions = {
+  poster: 'https://cycjimmy.github.io/staticFiles/images/screenshot/big_buck_bunny_640x360.jpg'
+};
+
+const videoOverlayOptions = {};
 
 class Home extends Component {  
     render(){
@@ -12,7 +19,14 @@ class Home extends Component {
               <Card.Header>Real-time Data</Card.Header>
               <Card.Body>
                 <Card.Text>LIVESTREAM</Card.Text>
-                <Card.Img src="https://raw.githubusercontent.com/ucfcs/spring2019-group23/master/test_images/event20190929151615001.jpg" rounded="true" />
+                <div>
+                <JsmpegPlayer
+                    wrapperClassName="video-wrapper"
+                    videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/"
+                    options={videoOptions}
+                    overlayOptions={videoOverlayOptions}
+                />
+                </div>
                 <Card.Text style={{color:"slategray"}}>Location: Stanton; Orlando, FL</Card.Text>
               </Card.Body>
             </Card>
