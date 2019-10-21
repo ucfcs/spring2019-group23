@@ -16,6 +16,9 @@ test  = pd.read_csv(TEST, low_memory=False)
 train = train.drop('date', axis=1)
 test  = test.drop('date', axis=1)
 
+# Shuffle the data
+test  = test.sample(frac=1)
+
 # Convert to numpy arrays
 train = train.values
 test  = test.values
@@ -35,20 +38,20 @@ x_scaler = MinMaxScaler(feature_range=(0, 1))
 y_scaler = MinMaxScaler(feature_range=(0, 1))
 x_train = x_scaler.fit_transform(x_train)
 y_train = y_scaler.fit_transform(y_train)
-x_test  = x_scaler.fit_transform(x_test)
+x_test  = x_scaler.transform(x_test)
 
-filename = 'mlp_regressor.sav'
+filename = 'pickles/mlp_regressor5x50_new_testset.sav'
 
-mlp = MLPRegressor(solver='sgd', activation='relu', alpha=.1, learning_rate='adaptive',
-                   hidden_layer_sizes=(250, 250, 250, 250, 250), random_state=1, verbose=True)
+# mlp = MLPRegressor(solver='sgd', activation='relu', alpha=.1, learning_rate='adaptive',
+                #    hidden_layer_sizes=(50, 50, 50, 50, 50), random_state=1, verbose=True)
 
-mlp.fit(x_train, y_train.ravel())
-pickle.dump(mlp, open(filename, 'wb'))
-# mlp = pickle.load(open(filename, 'rb'))
+# mlp.fit(x_train, y_train.ravel())
+# pickle.dump(mlp, open(filename, 'wb'))
+mlp = pickle.load(open(filename, 'rb'))
 
 pred = np.asarray(mlp.predict(x_test), dtype=np.float32).reshape(-1, 1)
 pred = y_scaler.inverse_transform(pred).ravel()
-pred = np.around(pred)
+pred = np.around(pred, decimals=2)
 pred = np.where(pred < 0, 0, pred)
 
 res = pd.DataFrame({'Prediction': pred, 'Actual': y_test})
