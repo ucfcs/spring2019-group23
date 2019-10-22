@@ -12,7 +12,7 @@ df   = pd.read_csv(TRAIN, low_memory=False)
 test = pd.read_csv(TEST,  low_memory=False)
 
 h = set()
-while test.shape[0] < 10000:
+while test.shape[0] < 25000:
     r = random.randint(0, df.shape[0])
     print(test.shape[0])
     if r not in h:

@@ -39,19 +39,13 @@ x_test  = x_scaler.fit_transform(x_test)
 
 filename = 'mlp_regressor.sav'
 
-mlp = MLPRegressor(solver='sgd', activation='relu', alpha=.1, learning_rate='adaptive',
-                   hidden_layer_sizes=(250, 250, 250, 250, 250), random_state=1, verbose=True)
 
-mlp.fit(x_train, y_train.ravel())
-pickle.dump(mlp, open(filename, 'wb'))
-# mlp = pickle.load(open(filename, 'rb'))
+# pred = np.asarray(mlp.predict(x_test), dtype=np.float32).reshape(-1, 1)
+# pred = y_scaler.inverse_transform(pred).ravel()
+# pred = np.around(pred)
+# pred = np.where(pred < 0, 0, pred)
 
-pred = np.asarray(mlp.predict(x_test), dtype=np.float32).reshape(-1, 1)
-pred = y_scaler.inverse_transform(pred).ravel()
-pred = np.around(pred)
-pred = np.where(pred < 0, 0, pred)
-
-res = pd.DataFrame({'Prediction': pred, 'Actual': y_test})
-print(res)
-print()
-print("loss = " + str(mean_square_error(y_test, pred)))
+# res = pd.DataFrame({'Prediction': pred, 'Actual': y_test})
+# print(res)
+# print()
+# print("loss = " + str(mean_square_error(y_test, pred)))
