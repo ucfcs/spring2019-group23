@@ -1,0 +1,1 @@
+We're trying a new IHS formula from the paper: http://ij.ms3d.de/pdf/ihs_transforms.pdf
