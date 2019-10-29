@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Row, Col, Card, Alert} from 'react-bootstrap';
 import JsmpegPlayer from './JsmpegPlayer';
+import Map from './Map';
 //import Livefeed from './Livefeed';
 //import Cloudmotion from './Cloudmotion';
 
