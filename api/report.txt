@@ -1,0 +1,88 @@
+{
+  latitude: 28.602437,
+  longitude: -81.200071,
+  timezone: 'America/New_York',
+  currently: {
+    time: 1572269949,
+    summary: 'Humid',
+    icon: 'clear-day',
+    nearestStormDistance: 13,
+    nearestStormBearing: 280,
+    precipIntensity: 0,
+    precipProbability: 0,
+    temperature: 77.82,
+    apparentTemperature: 79.71,
+    dewPoint: 75.84,
+    humidity: 0.94,
+    pressure: 1018.37,
+    windSpeed: 1.59,
+    windGust: 1.59,
+    windBearing: 114,
+    cloudCover: 0.1,
+    uvIndex: 2,
+    visibility: 8.003,
+    ozone: 264
+  },
+  minutely: {
+    summary: 'Humid for the hour.',
+    icon: 'clear-day',
+    data: [
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object],
+      [Object]
+    ]
+  },
+  hourly: {
+    summary: 'Possible light rain this evening.',
+    icon: 'rain',
+    data: [
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      [Object]
+    ]
+  },
+  daily: {
+    summary: 'Light rain today, with high temperatures falling to 78°F on Sunday.',
+    icon: 'rain',
+    data: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object]
+    ]
+  },
+  flags: {
+    sources: [
+      'nwspa',          'cmc',
+      'gfs',            'hrrr',
+      'icon',           'isd',
+      'madis',          'nam',
+      'sref',           'darksky',
+      'nearest-precip'
+    ],
+    'nearest-station': 0.769,
+    units: 'us'
+  },
+  offset: -4
+}
+75.86, 77.89

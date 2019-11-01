@@ -1,60 +1,54 @@
 import numpy as np
 import pandas as pd
 import pickle
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
-
-# Pathways
-TRAIN = 'data/train-data.csv'
-TEST  = 'data/test-data.csv'
-
-# Load the datasets into pandas dataframes
-train = pd.read_csv(TRAIN, low_memory=False)
-test  = pd.read_csv(TEST, low_memory=False)
-
-# Get rid of the 'date' column
-train = train.drop('date', axis=1)
-test  = test.drop('date', axis=1)
-
-# Shuffle the data
-test  = test.sample(frac=1)
-
-# Convert to numpy arrays
-train = train.values
-test  = test.values
+from sklearn.preprocessing import MinMaxScaler
 
 # Used to quantify how good our predictions are
 def mean_square_error(Y_test, Y_pred):
     return round(np.square(np.subtract(Y_test,Y_pred)).mean(), 4) 
 
-# Normalize the data
-x_train = np.delete(train, 9, 1)
-y_train = train[:, 10].reshape(-1, 1)
-x_test  = np.delete(test , 9, 1)
-y_test  = test[:, 10]
+# Pathways
+DATAFRAME = 'data/final-dataset.csv'
 
-# Normaloize/Scale all the data
+# Load the datasets into pandas dataframes
+df = pd.read_csv(DATAFRAME, low_memory=False)
+
+# Get rid of the 'date' column
+df = df.drop('date', axis=1)
+cols = df.columns.values
+
+# Transform the data to values between a certain range
+# An important step for making the gradient descent run a lot more efficiently
 x_scaler = MinMaxScaler(feature_range=(0, 1))
+x_scaler.fit(df.drop(columns='SA_WS1_POA'))
 y_scaler = MinMaxScaler(feature_range=(0, 1))
-x_train = x_scaler.fit_transform(x_train)
-y_train = y_scaler.fit_transform(y_train)
-x_test  = x_scaler.transform(x_test)
+y_scaler.fit(df.SA_WS1_POA.values.reshape(-1, 1))
 
-filename = 'pickles/mlp_regressor5x50_new_testset.sav'
+# Split the data into a test and train set
+train, test = train_test_split(df, test_size=0.2)
 
-# mlp = MLPRegressor(solver='sgd', activation='relu', alpha=.1, learning_rate='adaptive',
-                #    hidden_layer_sizes=(50, 50, 50, 50, 50), random_state=1, verbose=True)
+# Convert them back to Dataframes just to make life a little simpler
+x_train = train.drop(columns='SA_WS1_POA')
+y_train = train.SA_WS1_POA
+x_test  = test.drop(columns='SA_WS1_POA')
+y_test  = test.SA_WS1_POA
 
-# mlp.fit(x_train, y_train.ravel())
-# pickle.dump(mlp, open(filename, 'wb'))
-mlp = pickle.load(open(filename, 'rb'))
+filename = 'pickles/mlp_regressor5x50.sav'
 
-pred = np.asarray(mlp.predict(x_test), dtype=np.float32).reshape(-1, 1)
-pred = y_scaler.inverse_transform(pred).ravel()
+# Either open up an existing pickled model or start training a new one
+# mlp = pickle.load(open(filename, 'rb'))
+mlp = MLPRegressor(solver='sgd', activation='relu', alpha=.1, learning_rate='adaptive',
+                   hidden_layer_sizes=(100, 100, 100, 100, 100), random_state=1, verbose=True)
+mlp.fit(x_scaler.transform(x_train), y_scaler.transform(y_train.values.reshape(-1, 1)).ravel())
+pickle.dump(mlp, open(filename, 'wb'))
+
+pred = np.asarray(mlp.predict(x_scaler.transform(x_test)), dtype=np.float32).reshape(-1, 1)
+pred = y_scaler.inverse_transform(pred)
 pred = np.around(pred, decimals=2)
-pred = np.where(pred < 0, 0, pred)
 
-res = pd.DataFrame({'Prediction': pred, 'Actual': y_test})
+res = pd.DataFrame({'Prediction': pred.ravel(), 'Actual': y_test.values.ravel()})
 print(res)
 print()
-print("loss = " + str(mean_square_error(y_test, pred)))
+print("loss = " + str(mean_square_error(pred.ravel(), y_test.ravel())))
