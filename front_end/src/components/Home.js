@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Row, Col, Card, Alert} from 'react-bootstrap';
 import JsmpegPlayer from './JsmpegPlayer';
+import Map from './Map';
 //import Livefeed from './Livefeed';
 //import Cloudmotion from './Cloudmotion';
 
@@ -46,8 +47,9 @@ class Home extends Component {
               <Card.Body>
                 <Card.Text style={{color:"slategray"}}>CLOUD MOTION MONITORING</Card.Text>
                 <Alert variant="danger">An alert that appears when clouds are approaching the sun.</Alert>
-                <Card.Img src="https://raw.githubusercontent.com/ucfcs/spring2019-group23/master/opticalFlow/sample%20output/opticalhsv(Clouds1-out).png" 
-                    rounded="true" style={{display:"flex", height:"250px", width:"500px"}} />
+                <React.Fragment>
+                  <Map />
+                </React.Fragment>
                 <div style={{whiteSpace:"pre-wrap"}}>{`
                 `}</div>
                 <Card.Text style={{color:"slategray"}}>POWER OUTPUT (Sample graph)</Card.Text>
