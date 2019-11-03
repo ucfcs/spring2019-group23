@@ -1,3 +1,0 @@
-Using sat. formula from https://journals.ametsoc.org/doi/full/10.1175/JTECH1833.1
-
-new np.where() function

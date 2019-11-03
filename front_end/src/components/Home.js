@@ -11,7 +11,7 @@ const videoOptions = {
 
 const videoOverlayOptions = {};
 
-class Home extends Component {  
+class Home extends Component {
     render(){
         return (
           <Row noGutters='true'>
