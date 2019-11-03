@@ -24,9 +24,12 @@
   "homepage": "https://github.com/ucfcs/spring2019-group23#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "longjohn": "^0.2.12",
     "mongoose": "^5.7.1",
     "multer": "^1.4.2",
     "path": "^0.12.7",
+    "socket.io": "^2.3.0",
     "ws": "^7.2.0"
   },
   "devDependencies": {

@@ -3,12 +3,19 @@ var express = require('express'),
   bodyParser = require('body-parser'),
   path = require('path'),
   http = require('http'),
-  webSocket = require('ws');
+  webSocket = require('ws'),
+  fs = require('fs'),
+  socketIO = require('socket.io');
+
+if (process.env.NODE_ENV !== 'production'){
+  require('longjohn');
+}
 
 var app = express(),
   streamServer = http.createServer(app),
-  socketServer = new webSocket.Server({ server: streamServer }),
-  port = process.env.PORT || 3000,
+  socketio = socketIO(streamServer),
+  socketServer = new webSocket.Server({ server: streamServer, path: '/stream' }),
+  port = process.env.PORT || 3001,
   mongodb = 'mongodb://localhost/cloudtracking';
 
 function init_schema() {
@@ -43,6 +50,24 @@ function init() {
       }
     });
   };
+
+  socketio.on('connection', (client) => {
+    console.log("Connection from client");
+    client.on('disconnect', () => console.log('Client disconnected'));
+    
+    client.on('data', (data) => {
+      client.broadcast.emit('data', data)
+    })  
+
+    client.on('image', (frame) => {
+      client.broadcast.emit('image', "data:image/png;base64,"+ frame.toString("base64"))
+    })
+
+    client.on('error', (err) => {
+      console.log("Error from client: ", client.id);
+      console.log(err)
+    });
+  });
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
