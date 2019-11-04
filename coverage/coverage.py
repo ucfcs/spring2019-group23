@@ -1,6 +1,7 @@
 # Creates an image with only clouds in them from a BGR image
 import numpy as np
 import cv2
+from PIL import Image
 
 def _calc_hue(i, r, g, b):
     if (r < g < b):
