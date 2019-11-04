@@ -3,50 +3,64 @@ import sys
 import requests
 import cv2
 import numpy as np
+import socketio
 
 from os import listdir
 from os.path import isfile, join
 
 from opticalFlow import opticalDense
 from coverage import coverage
+from fisheye_mask import create_mask
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 # FLAGS -- used to test different functionalities
 display_images = True
 send_images = False
+do_mask = True
+sock = None
 
+# Initialize socket io stuff
+def initialize_socketio(url):
+    sio = socketio.Client()
+
+    @sio.event
+    def connect():
+        print("Connected to Application Server")
+
+    sio.connect(url)
+    return sio
+
+# send_flow but socket io
 def send_flow(frame, alert):
-    if send_images is False:
+    if send_images is False or sock is None:
         return
 
-    # Encode our frame into a JPG
-    _, encoded_img = cv2.imencode(".jpg", frame)
+    new_frame = black2transparent(frame)
+    success, im_buffer = cv2.imencode(".png", new_frame)
     
-    # Generate payload
-    file = { 'file': ('flow.jpg', encoded_img, 'image/jpeg') }
-    payload = { 'alert': alert }
+    byte_image = im_buffer.tobytes()
+    sock.emit('image', byte_image)
 
-    # POST payload to /motion route
-    res = requests.post('http://localhost:3000/motion', payload, files=file)
+# Make all black pixels transparent
+def black2transparent(bgr):
+    bgra = cv2.cvtColor(bgr, cv2.COLOR_BGR2BGRA)
+    bgra[np.where((bgra == [0, 0, 0, 1]).all(axis = 2))] = [0, 0, 0, 0]
+    return bgra
 
-    # for fun
-    print(res.content)
-
-
-def experiment_step(frame1, frame2):
-    # Run cloud detection (grayscale image)
-    prev = coverage.cloud_recognition(frame1)
-    next = coverage.cloud_recognition(frame2)
+def experiment_step(prev, next):
+    before = current_milli_time()
+    mask = create_mask.create_mask(prev)
+    prev = create_mask.apply_mask(prev, mask)
+    next = create_mask.apply_mask(next, mask)
 
     # Find the flow image for the prev and next images
     flow = opticalDense.calculate_opt_dense(prev, next)
-
-    # TODO: Generate alert... here?
-    alert = "for fun"
-    send_flow(flow, alert)
-
+    clouds = coverage.cloud_recognition(next)
+    
+    after = current_milli_time()
+    print('Experiment step took: %s ' % (after - before))
     # Return experiment step
-    return (prev, next, flow)
+    return (prev, next, flow, clouds)
 
 def experiment_display(prev, next, flow):
     if display_images is False:
@@ -83,7 +97,7 @@ def experiment_video(video_filename):
         if (next_img is None):
             break
         
-        (prev, next, flow) = experiment_step(prev_img, next_img)
+        (prev, next, flow, coverage) = experiment_step(prev_img, next_img)
 
         # Break if ESC key was pressed
         if (experiment_display(prev, next, flow) == False):
@@ -111,5 +125,7 @@ def experiment_images(folder_name):
 
         prev_img = next_img
 
-# experiment_images("test_images/")
+# sock = initialize_socketio('http://localhost:3001')
+# experiment_images("test_images/2019-09-29/")
 # experiment_video('opticalFlow/Clouds.mp4')
+experiment_video('test_images/2019-10-19/test10sec.mp4')

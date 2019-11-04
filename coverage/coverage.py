@@ -25,6 +25,8 @@ def _calc_sat(i, h, r, g, b):
     elif (1 < h <= 2):
         return (i - (3 * r)) / i
     else:
+        if i == 0:
+            return 1e9
         return (i - (3 * g)) / i
 
 # Calculate cloud-only image
