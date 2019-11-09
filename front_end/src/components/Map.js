@@ -6,7 +6,6 @@ const FOV = 58;
 const CENTER = [28.4294, -81.309];
 
 class Map extends Component {
-
   componentDidMount(){
     this.map = L.map('map', {
       center: CENTER,
@@ -19,9 +18,10 @@ class Map extends Component {
     });
 
     // Creating Image overlay
-    var imageUrl = 'trans.png'; 
+    
+    var imagePath = 'leaflet_cloud_image.png'; 
     var imageBounds = [[28.3, -81.2], [28.4, -81.4]];
-    var overlay = L.imageOverlay(imageUrl, imageBounds);
+    var overlay = L.imageOverlay(imagePath, imageBounds);
     overlay.addTo(this.map);       
   }
   render (){
