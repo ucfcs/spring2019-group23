@@ -56,6 +56,7 @@ function init() {
     client.on('disconnect', () => console.log('Client disconnected'));
     
     client.on('data', (data) => {
+      // Archiving should happen here
       client.broadcast.emit('data', data)
     })  
 

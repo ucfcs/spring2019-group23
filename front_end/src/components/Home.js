@@ -6,12 +6,28 @@ import Map from './Map';
 //import Cloudmotion from './Cloudmotion';
 
 const videoOptions = {
-  poster: 'https://cycjimmy.github.io/staticFiles/images/screenshot/big_buck_bunny_640x360.jpg'
+  poster: 'https://i.imgur.com/FJtImIA.png'
 };
 
 const videoOverlayOptions = {};
 
 class Home extends Component {
+      constructor(props) {
+      super(props);
+      subscribeToImage((err, img_for_fun) => {
+        this.setState({ img_for_fun })
+      });
+
+      subscribeToData((err, data) => {
+        /// TODO: If no data was sent for some points will this be duplicated?
+        this.setState(data);
+      });
+    }
+
+    state = {
+      img_for_fun: ''
+    };
+  
     render(){
         return (
           <Row noGutters='true'>
@@ -33,13 +49,14 @@ class Home extends Component {
             </Card>
             <hr />
             <Card border='light' style={{backgroundColor: 'ghostwhite', display: 'flex'}}>
-              <Card.Body style={{color:"slategray"}}>
-                <Card.Text>CURRENT CONDITIONS</Card.Text>
-                <Card.Text>Cloud Coverage</Card.Text>
-                <Card.Text>Temperature</Card.Text>
-                <Card.Text>Dewpoint</Card.Text>
-                <Card.Text>Cloud base height(CBH)</Card.Text>
-              </Card.Body>
+            <Card.Body style={{ color: "slategray" }}>
+              <Card.Text>CURRENT CONDITIONS</Card.Text>
+              <Card.Text>Cloud Coverage: {this.state.cloud_coverage}</Card.Text>
+              <Card.Text>Temperature: {this.state.temperature}</Card.Text>
+              <Card.Text>Dewpoint: {this.state.dew_point}</Card.Text>
+              <Card.Text>Barometric Pressure: {this.state.barometric_pressure}</Card.Text>
+              <Card.Text>Cloud base height(CBH): {this.state.cloud_base_height}</Card.Text>
+            </Card.Body>
             </Card>
           </Col>
           <Col sm={8}>
@@ -53,8 +70,8 @@ class Home extends Component {
                 <div style={{whiteSpace:"pre-wrap"}}>{`
                 `}</div>
                 <Card.Text style={{color:"slategray"}}>POWER OUTPUT (Sample graph)</Card.Text>
-                <Card.Img src="https://firstgreenconsulting.files.wordpress.com/2013/05/conductor.jpg"
-                    style={{display:"flex", height:"200px", width:"500px"}} />
+                <Card.Img src={this.state.img_for_fun}
+                    style={{display:"flex"}} />
               </Card.Body>
             </Card>
           </Col>
