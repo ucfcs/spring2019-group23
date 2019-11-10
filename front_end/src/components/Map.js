@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import L from 'leaflet';
-import { subscribeToImage } from '../api';
+import { subscribeToCoverage, subscribeToFlow } from '../api';
 
 // Field of Vision for a specific camera (degrees). Using iPhone 7.
 const FOV = 58;
@@ -10,13 +10,18 @@ class Map extends Component {
   constructor(props) {
     super(props);
     
-    subscribeToImage((err, coverage_img) => {
+    subscribeToCoverage((err, coverage_img) => {
       this.setState({ coverage_img })
     });
+
+    subscribeToFlow((err, flow_img) => {
+      this.setState({ flow_img })
+    })
   }
 
   state = {
-    coverage_img: 'leaflet_cloud_image.png'
+    coverage_img: 'leaflet_cloud_image.png',
+    flow_img: ''
   }
 
   componentDidMount() {

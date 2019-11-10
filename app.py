@@ -18,8 +18,10 @@ from fisheye_mask import create_mask
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 # Constants
+# URL_APP_SERVER          = 'http://localhost:3001/'
 URL_APP_SERVER          = 'http://cloudtrackingcloudserver.herokuapp.com'
 CALC_IM_COVERAGE_SIZE   = (1024, 768)
+DISPLAY_SIZE            = (512, 384)
 MASK_RADIUS_RATIO       = 3.5
 
 # FLAGS -- used to test different functionalities
@@ -41,7 +43,7 @@ def initialize_socketio(url):
     return sio
 
 # send coverage image
-def send_coverage(frame, alert):
+def send_coverage(frame):
     if send_images is False or sock is None:
         return
 
@@ -53,12 +55,27 @@ def send_coverage(frame, alert):
         return
 
     byte_image = im_buffer.tobytes()
-    sock.emit('image', byte_image)
+    sock.emit('coverage', byte_image)
+
+# send optical flow image
+def send_optflow(frame):
+    if send_images is False or sock is None:
+        return
+
+    frame = black2transparent(frame)
+    success, im_buffer = cv2.imencode('.png', frame)
+    
+    if success is False:
+        print("couldnt encode png image")
+        return
+
+    byte_image = im_buffer.tobytes()
+    sock.emit('flow', byte_image)
 
 # Make all black pixels transparent
 def black2transparent(bgr):
     bgra = cv2.cvtColor(bgr, cv2.COLOR_BGR2BGRA)
-    bgra[np.where((bgra == [0, 0, 0, 1]).all(axis = 2))] = [0, 0, 0, 0]
+    bgra[(bgra[:, :, 0:3] == [0, 0, 0]).all(2)] = (0, 0, 0, 0)
     return bgra
 
 def experiment_step(prev, next):
@@ -72,6 +89,9 @@ def experiment_step(prev, next):
 
     # Find the flow image for the prev and next images
     flow = opticalDense.calculate_opt_dense(prev, next)
+
+    if do_mask is True:
+        flow = create_mask.apply_mask(flow, mask)
 
     if do_coverage is True:
         small = cv2.resize(next, CALC_IM_COVERAGE_SIZE)
@@ -88,19 +108,19 @@ def experiment_display(prev, next, flow, coverage):
     if display_images is False:
         return
     # Resize the images for visibility
-    flow_show = cv2.resize(flow, (400, 400))
-    prev_show = cv2.resize(prev, (400, 400))
-    next_show = cv2.resize(next, (400, 400))
-    if do_coverage is True:
-        cvg_show = cv2.resize(coverage, (400, 400))
+    flow_show = cv2.resize(flow, DISPLAY_SIZE)
+    prev_show = cv2.resize(prev, DISPLAY_SIZE)
+    next_show = cv2.resize(next, DISPLAY_SIZE)
+    # if do_coverage is True:
+    #     cvg_show = cv2.resize(coverage, DISPLAY_SIZE)
 
     # Show the images
     cv2.imshow('flow?', flow_show)
     cv2.imshow('previous', prev_show)
     cv2.imshow('next', next_show)
     
-    if do_coverage is True:
-        cv2.imshow('coverage', cvg_show)
+    # if do_coverage is True:
+    #     cv2.imshow('coverage', cvg_show)
 
     # Wait 30s for ESC and return false if pressed
     k = cv2.waitKey(30) & 0xff
@@ -121,7 +141,7 @@ def experiment_display(prev, next, flow, coverage):
 #         ret, next_img = cam.read()
         
 #         (prev, next, flow, coverage) = experiment_step(prev_img, next_img)
-#         send_coverage(coverage, None)
+#         send_coverage(coverage)
 
 #         # Break if ESC key was pressed
 #         if (experiment_display(prev, next, flow, coverage) == False):
@@ -138,7 +158,7 @@ def experiment_display(prev, next, flow, coverage):
 #             ret = cam.grab()
 #         count = 0
 
-def experiment_ffmpeg_thing():
+def experiment_ffmpeg_pipe():
     command = [ 'ffmpeg',
             '-rtsp_transport', 'tcp',
             '-i', 'rtsp://192.168.0.10:8554/CH001.sdp',
@@ -170,7 +190,8 @@ def experiment_ffmpeg_thing():
         pipe.stdout.flush()    
 
         (prev, next, flow, coverage) = experiment_step(prev, next)
-        send_coverage(coverage, None)
+        send_coverage(coverage)
+        send_optflow(flow)
 
         # Break if ESC key was pressed
         if (experiment_display(prev, next, flow, coverage) == False):
@@ -193,7 +214,8 @@ def experiment_video(video_filename):
             break
         
         (prev, next, flow, coverage) = experiment_step(prev_img, next_img)
-        send_coverage(coverage, None)
+        send_coverage(coverage)
+        send_optflow(flow)
 
         # Break if ESC key was pressed
         if (experiment_display(prev, next, flow, coverage) == False):
@@ -221,4 +243,4 @@ sock = initialize_socketio(URL_APP_SERVER)
 # experiment_video('test_images/20191105-134549.117.mp4')
 # experiment_video('test_images/2019-10-19/test10sec.mp4')
 # experiment_livestream('rtsp://192.168.0.10:8554/CH001.sdp')
-experiment_ffmpeg_thing()
+experiment_ffmpeg_pipe()

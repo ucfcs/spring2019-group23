@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Row, Col, Card, Alert} from 'react-bootstrap';
 import JsmpegPlayer from './JsmpegPlayer';
 import Map from './Map';
-import { subscribeToData, subscribeToImage } from '../api';
+import { subscribeToData, subscribeToCoverage, subscribeToFlow } from '../api';
 //import Livefeed from './Livefeed';
 //import Cloudmotion from './Cloudmotion';
 
@@ -15,10 +15,14 @@ const videoOverlayOptions = {};
 class Home extends Component {
       constructor(props) {
       super(props);
-      subscribeToImage((err, coverage_img) => {
+      subscribeToCoverage((err, coverage_img) => {
         this.setState({ coverage_img })
       });
-
+  
+      subscribeToFlow((err, flow_img) => {
+        this.setState({ flow_img })
+      })
+    
       subscribeToData((err, data) => {
         /// TODO: If no data was sent for some points will this be duplicated?
         this.setState(data);
@@ -26,7 +30,8 @@ class Home extends Component {
     }
 
     state = {
-      coverage_img: ''
+      coverage_img: videoOptions.poster,
+      flow_img: videoOptions.poster
     };
   
     render(){
@@ -73,6 +78,8 @@ class Home extends Component {
                 <Card.Text style={{color:"slategray"}}>POWER OUTPUT (Sample graph)</Card.Text>
                 <Card.Img src={this.state.coverage_img}
                     style={{display:"flex"}} />
+                <Card.Img src={this.state.flow_img}
+                  style={{display:"flex"}} />
               </Card.Body>
             </Card>
           </Col>

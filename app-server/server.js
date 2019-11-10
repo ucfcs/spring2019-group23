@@ -60,8 +60,12 @@ function init() {
       client.broadcast.emit('data', data)
     })  
 
-    client.on('image', (frame) => {
-      client.broadcast.emit('image', "data:image/png;base64,"+ frame.toString("base64"))
+    client.on('coverage', (frame) => {
+      client.broadcast.emit('coverage', "data:image/png;base64,"+ frame.toString("base64"))
+    })
+
+    client.on('flow', (frame) => {
+      client.broadcast.emit('flow', "data:image/png;base64,"+ frame.toString("base64"))
     })
 
     client.on('error', (err) => {

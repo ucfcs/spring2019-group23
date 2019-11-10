@@ -1,18 +1,17 @@
 import numpy as np
 import cv2
 
-# Reads video frames by frame and outputs the optical flow as a BGR image
-def calculate_opt_dense(frame1, frame2):
-    # Convert the images to Grayscale
-    prev = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    next = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-    
+# Constants
+ARROW_STEP = 32
+
+# Flags
+DRAW_COLORS = False
+DRAW_ARROWS = True
+
+def draw_colors(optflow):
     # Prepare HSV
     hsv = np.zeros_like(frame1)
     hsv[..., 1] = 255
-
-    # Calculate the optical flow
-    flow = cv2.calcOpticalFlowFarneback(prev, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
 
     # Populate HSV image with optical flow values
     mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
@@ -21,3 +20,29 @@ def calculate_opt_dense(frame1, frame2):
 
     # Return the optical flow in BGR, as it was inputted
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+def draw_arrows(frame, flow):
+    h, w = frame.shape[:2]
+    y, x = np.mgrid[ARROW_STEP/2:h:ARROW_STEP, ARROW_STEP/2:w:ARROW_STEP].reshape(2,-1).astype(int)
+    fx, fy = flow[y,x].T
+    lines = np.vstack([x, y, x+fx, y+fy]).T.reshape(-1, 2, 2)
+    lines = np.int32(lines + 0.5)
+    vis = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    cv2.polylines(vis, lines, 0, (0, 255, 0))
+    for (x1, y1), (_x2, _y2) in lines:
+        cv2.circle(vis, (x1, y1), 1, (0, 255, 0), -1)
+    return vis    
+
+# Reads video frames by frame and outputs the optical flow as a BGR image
+def calculate_opt_dense(frame1, frame2):
+    # Convert the images to Grayscale
+    prev = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    next = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+
+    # Calculate the optical flow
+    flow = cv2.calcOpticalFlowFarneback(prev, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+    if DRAW_COLORS is True:
+        return draw_colors(flow)
+    else:
+        return draw_arrows(next, flow)
