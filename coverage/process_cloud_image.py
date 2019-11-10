@@ -20,6 +20,7 @@ def calc_sat(r, g, b):
 # A few constants that are used in this program
 SIDE_LENGTH   = 600   # Used for cropping
 SUN_RADIUS    = 100   # Used to block the sun
+SAT_THRESHOLD = 0.05  # Used for cloud detection
 SUN_THRESHOLD = 2.975 # Used for sun detection
 FILTER_SIZE   = 10    # Used for noise reduction and locating the sun
 
@@ -67,7 +68,7 @@ v_sat = np.vectorize(calc_sat)
 sat = v_sat(array_image[:,:,0], array_image[:,:,1], array_image[:,:,2])
 
 # Change values to make output and give the clouds a transparent background
-sat = np.where(sat > 0.05, 0, .9)
+sat = np.where(sat > SAT_THRESHOLD, 0, .9)
 output = np.dstack((array_image, sat))
 
 # Output image
