@@ -15,8 +15,8 @@ const videoOverlayOptions = {};
 class Home extends Component {
       constructor(props) {
       super(props);
-      subscribeToImage((err, img_for_fun) => {
-        this.setState({ img_for_fun })
+      subscribeToImage((err, coverage_img) => {
+        this.setState({ coverage_img })
       });
 
       subscribeToData((err, data) => {
@@ -26,7 +26,7 @@ class Home extends Component {
     }
 
     state = {
-      img_for_fun: ''
+      coverage_img: ''
     };
   
     render(){
@@ -40,7 +40,7 @@ class Home extends Component {
                 <div>
                 <JsmpegPlayer
                     wrapperClassName="video-wrapper"
-                    videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/"
+                    videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/stream"
                     options={videoOptions}
                     overlayOptions={videoOverlayOptions}
                 />
@@ -52,11 +52,11 @@ class Home extends Component {
             <Card border='light' style={{backgroundColor: 'ghostwhite', display: 'flex'}}>
             <Card.Body style={{ color: "slategray" }}>
               <Card.Text>CURRENT CONDITIONS</Card.Text>
-              <Card.Text>Cloud Coverage: {this.state.cloud_coverage}</Card.Text>
-              <Card.Text>Temperature: {this.state.temperature}</Card.Text>
-              <Card.Text>Dewpoint: {this.state.dew_point}</Card.Text>
-              <Card.Text>Barometric Pressure: {this.state.barometric_pressure}</Card.Text>
-              <Card.Text>Cloud base height(CBH): {this.state.cloud_base_height}</Card.Text>
+              <Card.Text>Cloud Coverage: {this.state.cloud_coverage}%</Card.Text>
+              <Card.Text>Temperature: {this.state.temperature} °F</Card.Text>
+              <Card.Text>Dewpoint: {this.state.dew_point} °F</Card.Text>
+              <Card.Text>Barometric Pressure: {this.state.barometric_pressure} mb</Card.Text>
+              <Card.Text>Cloud base height (CBH): {this.state.cloud_base_height} ft</Card.Text>
             </Card.Body>
             </Card>
           </Col>
@@ -71,7 +71,7 @@ class Home extends Component {
                 <div style={{whiteSpace:"pre-wrap"}}>{`
                 `}</div>
                 <Card.Text style={{color:"slategray"}}>POWER OUTPUT (Sample graph)</Card.Text>
-                <Card.Img src={this.state.img_for_fun}
+                <Card.Img src={this.state.coverage_img}
                     style={{display:"flex"}} />
               </Card.Body>
             </Card>

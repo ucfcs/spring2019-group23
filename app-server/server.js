@@ -29,7 +29,7 @@ function init_routes() {
     livestreamRoute = require('./api/routes/livestreamRoutes')(socketServer);
   app.use('/activity', cloudActivityRoute)
   app.use('/motion', cloudMotionRoute)
-  app.use('/uploadmayb', livestreamRoute)
+  app.use('/cloudtrackinglivestream', livestreamRoute)
 }
 
 function init() {
@@ -56,7 +56,7 @@ function init() {
     client.on('disconnect', () => console.log('Client disconnected'));
     
     client.on('data', (data) => {
-      // Archiving should happen here
+      // TODO: Archive this weather data as it comes in
       client.broadcast.emit('data', data)
     })  
 

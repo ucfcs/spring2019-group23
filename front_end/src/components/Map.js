@@ -1,12 +1,25 @@
 import React, { Component } from 'react';
 import L from 'leaflet';
+import { subscribeToImage } from '../api';
 
 // Field of Vision for a specific camera (degrees). Using iPhone 7.
 const FOV = 58;
 const CENTER = [28.4294, -81.309];
 
 class Map extends Component {
-  componentDidMount(){
+  constructor(props) {
+    super(props);
+    
+    subscribeToImage((err, coverage_img) => {
+      this.setState({ coverage_img })
+    });
+  }
+
+  state = {
+    coverage_img: 'leaflet_cloud_image.png'
+  }
+
+  componentDidMount() {
     this.map = L.map('map', {
       center: CENTER,
       zoom: 14,
@@ -18,10 +31,11 @@ class Map extends Component {
     });
 
     // Creating Image overlay
-    
-    var imagePath = 'leaflet_cloud_image.png'; 
     var imageBounds = [[28.3, -81.2], [28.4, -81.4]];
-    var overlay = L.imageOverlay(imagePath, imageBounds);
+
+    /// TODO: Create second overlay and swap them as new data arrives
+    ///// seealso: https://plnkr.co/edit/nIdNwTpDjZNhyiCzGJPC?p=info
+    var overlay = L.imageOverlay(this.state.coverage_img, imageBounds);
     overlay.addTo(this.map);       
   }
   render (){
