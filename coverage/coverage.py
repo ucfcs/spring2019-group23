@@ -1,57 +1,69 @@
 # Creates an image with only clouds in them from a BGR image
 import numpy as np
+from scipy import signal
+import matplotlib.pyplot as plt
 import cv2
-from PIL import Image
 
-def _calc_hue(i, r, g, b):
-    if (r < g < b):
-        try:
-            return ((b - r) / (i - (3 * r))) + 1
-        except:
-            return 1e9
-    elif (g < b):
-        try:
-            return ((b - r) / (i - (3 * r))) + 2
-        except:
-            return 1e9
-    else:
-        try:
-            return ((b - r) / (i - (3 * r)))
-        except:
-            return 1e9
+# A few constants that are used in this program
+SUN_RADIUS    = 50   # Used to block the sun
+SAT_THRESHOLD = 0.075  # Used for cloud detection
+SUN_THRESHOLD = 2.9375 # Used for sun detection
+FILTER_SIZE   = 25    # Used for noise reduction and locating the sun
 
-def _calc_sat(i, h, r, g, b):
-    if (h <= 1):
-        return (i - (3 * b)) / i
-    elif (1 < h <= 2):
-        return (i - (3 * r)) / i
-    else:
-        if i == 0:
-            return 1e9
-        return (i - (3 * g)) / i
+# Formula for caluclating saturation
+def _calc_sat(r, g, b):
+    try:
+        if (r < g < b):
+            return 1 - (3 * r) / (r + b + g)
+        elif (g < b):
+            return 1 - (3 * g) / (r + b + g)
+        else:
+            return 1 - (3 * b) / (r + b + g)
+    except:
+        return 1e9
+
+# Vectorize the functions above so that we can use numpy to easily apply the functions
+# to all pixels
+v_sat = np.vectorize(_calc_sat)
 
 # Calculate cloud-only image
 def cloud_recognition(img):
     # OpenCV opens images as GBR. We need to change it to RGB, convert it to a numpy array
     # and then normalize all the values
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = np.asarray(img).astype(np.double)
     img /= 255
 
-    # Vectorize the functions above so that we can use numpy to easily apply the functions
-    # to all pixels
-    v_hue = np.vectorize(_calc_hue)
-    v_sat = np.vectorize(_calc_sat)
+    # Locate the brightest pixel in the image (i.e. the sun) and cover it up so it doesn't
+    # f*ck with our coverage code
+    intensity = img[:,:,0] + img[:,:,1] + img[:,:,2]
+
+    # To eliminate noise and find the center of the sun, we're going to do a mean convolution
+    mean_matrix = np.full(shape=(FILTER_SIZE, FILTER_SIZE), fill_value=1/FILTER_SIZE**2)
+    convolved_intensity = signal.convolve2d(intensity, mean_matrix, mode='full', boundary='fill', fillvalue=0)
+
+    # locate the brightest pixel in the image (aka the pixel with the highest intensity value)
+    max_intensity = np.amax(convolved_intensity)
+
+    # If the sun is in the image, the max_intensity should be greater than this threshold
+    # If it's not, the that means that the sun is probably covered by a cloud (or not in frame)
+    if max_intensity >= SUN_THRESHOLD:
+        brightest = np.where(convolved_intensity == max_intensity)
+        l = int(len(brightest[0]) / 2)
+
+        x = brightest[1][l]
+        y = brightest[0][l]
+        r = SUN_RADIUS
+
+        cv2.circle(img, (x, y), r, (255, 0, 0), -1)
 
     # Use the vectorized functions above and apply to every element of the matrix
-    intensity = img[:,:,0] + img[:,:,1] + img[:,:,2]
-    hue = v_hue(intensity, img[:,:,0], img[:,:,1], img[:,:,2])
-    sat = v_sat(intensity, hue, img[:,:,0], img[:,:,1], img[:,:,2])
+    sat = v_sat(img[:,:,2], img[:,:,1], img[:,:,0])
 
     # Change values to make output prettier
-    sat = np.where(sat > 0.1, 0, sat * 2)
+    sat = np.where(sat > SAT_THRESHOLD, 0, .9)
+    output = np.dstack((img, sat))
 
-    sat = sat.astype(np.float32)
+    output *= 255
 
     # Return the image in the same format, in which it was inputted
-    return cv2.cvtColor(sat, cv2.COLOR_GRAY2BGR)
+    return output
