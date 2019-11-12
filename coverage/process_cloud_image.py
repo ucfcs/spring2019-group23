@@ -18,13 +18,13 @@ def calc_sat(r, g, b):
         return 1e9
 
 # A few constants that are used in this program
-SIDE_LENGTH   = 600   # Used for cropping
+SIDE_LENGTH   = 525   # Used for cropping
 SUN_RADIUS    = 100   # Used to block the sun
-SUN_THRESHOLD = 2.975 # Used for sun detection
-FILTER_SIZE   = 10    # Used for noise reduction and locating the sun
+SUN_THRESHOLD = 2.97  # Used for sun detection
+FILTER_SIZE   = 11    # Used for noise reduction and locating the sun
 
 # Load an color image in grayscale
-unprocessed_image = Image.open('coverage_testing_images/image028.jpg')
+unprocessed_image = Image.open('coverage_testing_images/image084.jpg')
 
 # Crop the image. To get rid of the really distorted edges (because of fisheye)
 h, w = unprocessed_image.size
@@ -40,7 +40,7 @@ array_image /= 255
 intensity = array_image[:,:,0] + array_image[:,:,1] + array_image[:,:,2]
 
 # To eliminate noise and find the center of the sun, we're going to do a mean convolution
-mean_matrix = np.full(shape=(FILTER_SIZE, FILTER_SIZE), fill_value=1/FILTER_SIZE**2)
+mean_matrix = np.full(shape=(FILTER_SIZE, FILTER_SIZE), fill_value=1/(FILTER_SIZE**2))
 convolved_intensity = signal.convolve2d(intensity, mean_matrix, mode='full', boundary='fill', fillvalue=0)
 
 # locate the brightest pixel in the image (aka the pixel with the highest intensity value)
@@ -67,12 +67,12 @@ v_sat = np.vectorize(calc_sat)
 sat = v_sat(array_image[:,:,0], array_image[:,:,1], array_image[:,:,2])
 
 # Change values to make output and give the clouds a transparent background
-sat = np.where(sat > 0.05, 0, .9)
+sat = np.where(sat > 0.05, 0, .95)
 output = np.dstack((array_image, sat))
 
 # Output image
 imageio.imwrite('../front_end/public/leaflet_cloud_image.png', output)
 
 # Display image (for debugging)
-# plt.imshow(convolved_intensity, cmap='gray')
-# plt.show()
+plt.imshow(unprocessed_image)
+plt.show()
