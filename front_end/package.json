@@ -13,8 +13,10 @@
     "react-dom": "^16.10.1",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.1.2",
+    "request-promise": "^4.2.5",
     "socket.io-client": "^2.3.0",
-    "styled-components": "^4.4.0"
+    "styled-components": "^4.4.0",
+    "suncalc": "^1.8.0"
   },
   "scripts": {
     "start": "react-scripts start",

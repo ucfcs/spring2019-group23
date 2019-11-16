@@ -1,4 +1,4 @@
-const request = require('request-promise');
+const request = require('request');
 let baseAddy  = "https://api.darksky.net/forecast/";
 let pass = "42fa7ad5cbb661f45bdc9a23fdbe25ec";
 let long = "28.602437";
