@@ -52,9 +52,6 @@ function init() {
   };
 
   socketio.on('connection', (client) => {
-    console.log("Connection from client");
-    client.on('disconnect', () => console.log('Client disconnected'));
-    
     client.on('data', (data) => {
       // TODO: Archive this weather data as it comes in
       client.broadcast.emit('data', data)
@@ -64,8 +61,8 @@ function init() {
       client.broadcast.emit('coverage', "data:image/png;base64,"+ frame.toString("base64"))
     })
 
-    client.on('flow', (frame) => {
-      client.broadcast.emit('flow', "data:image/png;base64,"+ frame.toString("base64"))
+    client.on('shadow', (frame) => {
+      client.broadcast.emit('shadow', "data:image/png;base64,"+ frame.toString("base64"))
     })
 
     client.on('error', (err) => {

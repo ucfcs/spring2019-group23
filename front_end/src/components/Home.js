@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import { Row, Col, Card, Alert} from 'react-bootstrap';
 import JsmpegPlayer from './JsmpegPlayer';
 import Map from './Map';
-import { subscribeToData, subscribeToCoverage, subscribeToFlow } from '../api';
-//import Livefeed from './Livefeed';
-//import Cloudmotion from './Cloudmotion';
+import { subscribeToData } from '../api';
 
 const videoOptions = {
   poster: 'https://i.imgur.com/FJtImIA.png'
@@ -15,24 +13,11 @@ const videoOverlayOptions = {};
 class Home extends Component {
       constructor(props) {
       super(props);
-      subscribeToCoverage((err, coverage_img) => {
-        this.setState({ coverage_img })
-      });
-  
-      subscribeToFlow((err, flow_img) => {
-        this.setState({ flow_img })
-      })
     
       subscribeToData((err, data) => {
-        /// TODO: If no data was sent for some points will this be duplicated?
         this.setState(data);
       });
     }
-
-    state = {
-      coverage_img: videoOptions.poster,
-      flow_img: videoOptions.poster
-    };
   
     render(){
         return (
@@ -75,11 +60,6 @@ class Home extends Component {
                 </React.Fragment>
                 <div style={{whiteSpace:"pre-wrap"}}>{`
                 `}</div>
-                <Card.Text style={{color:"slategray"}}>POWER OUTPUT (Sample graph)</Card.Text>
-                <Card.Img src={this.state.coverage_img}
-                    style={{display:"flex"}} />
-                <Card.Img src={this.state.flow_img}
-                  style={{display:"flex"}} />
               </Card.Body>
             </Card>
           </Col>

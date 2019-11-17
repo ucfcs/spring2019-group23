@@ -42,35 +42,36 @@ def initialize_socketio(url):
     sio.connect(url)
     return sio
 
+def send_coverage(coverage):
+    if sock is None:
+        return
+
+    cloud = np.count_nonzero(coverage[:, :, 3] > 0)
+    not_cloud = np.count_nonzero(coverage[:, :, 3] == 0)
+    coverage = np.round((cloud / not_cloud) * 100, 2)
+    
+    sock.emit('data', { "cloud_coverage": coverage })
+
+def send_image(image, event_name):
+    if send_images is False or sock is None:
+        return
+    success, im_buffer = cv2.imencode('.png', image)
+    
+    if success is False:
+        print("couldnt encode png image")
+        return
+
+    byte_image = im_buffer.tobytes()
+    sock.emit(event_name, byte_image)
+
 # send coverage image
-def send_coverage(frame):
-    if send_images is False or sock is None:
-        return
+def send_cloud(frame):
+    send_image(frame, 'coverage')
 
-    # frame = black2transparent(frame)
-    success, im_buffer = cv2.imencode('.png', frame)
-    
-    if success is False:
-        print("couldnt encode png image")
-        return
-
-    byte_image = im_buffer.tobytes()
-    sock.emit('coverage', byte_image)
-
-# send optical flow image
-def send_optflow(frame):
-    if send_images is False or sock is None:
-        return
-
-    frame = black2transparent(frame)
-    success, im_buffer = cv2.imencode('.png', frame)
-    
-    if success is False:
-        print("couldnt encode png image")
-        return
-
-    byte_image = im_buffer.tobytes()
-    sock.emit('flow', byte_image)
+def send_shadow(coverage):
+    shadow = coverage.copy()
+    shadow[(shadow[:, :, 3] > 0)] = (0, 0, 0, 127)
+    send_image(shadow, 'shadow')
 
 # Make all black pixels transparent
 def black2transparent(bgr):
@@ -87,16 +88,15 @@ def experiment_step(prev, next):
         prev = create_mask.apply_mask(prev, mask)
         next = create_mask.apply_mask(next, mask)
 
-    # Find the flow image for the prev and next images
-    flow = opticalDense.calculate_opt_dense(prev, next)
-
-    if do_mask is True:
-        flow = create_mask.apply_mask(flow, mask)
+    # Find the flow vectors for the prev and next images
+    flow_vectors = opticalDense.calculate_opt_dense(prev, next)
 
     if do_coverage is True:
         small = cv2.resize(next, CALC_IM_COVERAGE_SIZE)
         clouds = coverage.cloud_recognition(small)
-        
+
+    flow = opticalDense.draw_arrows(clouds.copy(), flow_vectors)
+
     after = current_milli_time()
     elapsed = (after - before)
     print('Experiment step took: %s ms' % elapsed)
@@ -111,16 +111,11 @@ def experiment_display(prev, next, flow, coverage):
     flow_show = cv2.resize(flow, DISPLAY_SIZE)
     prev_show = cv2.resize(prev, DISPLAY_SIZE)
     next_show = cv2.resize(next, DISPLAY_SIZE)
-    # if do_coverage is True:
-    #     cvg_show = cv2.resize(coverage, DISPLAY_SIZE)
 
     # Show the images
     cv2.imshow('flow?', flow_show)
     cv2.imshow('previous', prev_show)
     cv2.imshow('next', next_show)
-    
-    # if do_coverage is True:
-    #     cv2.imshow('coverage', cvg_show)
 
     # Wait 30s for ESC and return false if pressed
     k = cv2.waitKey(30) & 0xff
@@ -128,38 +123,11 @@ def experiment_display(prev, next, flow, coverage):
         return False
     return True
 
-# Run experiment on a live stream rtsp
-# DEPRECARTED ('does not really work')
-# def experiment_livestream(url):
-#     cam = cv2.VideoCapture(url)
-
-#     count = 0
-#     while 1:
-#         before = current_milli_time()
-#         # Get the first image
-#         ret, prev_img = cam.read()
-#         ret, next_img = cam.read()
-        
-#         (prev, next, flow, coverage) = experiment_step(prev_img, next_img)
-#         send_coverage(coverage)
-
-#         # Break if ESC key was pressed
-#         if (experiment_display(prev, next, flow, coverage) == False):
-#             break
-        
-#         after = current_milli_time()
-#         elapsed = (after - before)
-#         print('Experiment step took: %s ms' % elapsed)
-#         ret = True
-
-#         while ( count < (elapsed / 1000) * 50 ):
-#             count += 1
-#             # Get the first image
-#             ret = cam.grab()
-#         count = 0
-
-def experiment_ffmpeg_pipe():
-    command = [ 'ffmpeg',
+def create_ffmpeg_pipe(video_path = None):
+    if video_path is None:
+        command = [ 'ffmpeg',
+            '-loglevel', 'panic',
+            '-nostats',
             '-rtsp_transport', 'tcp',
             '-i', 'rtsp://192.168.0.10:8554/CH001.sdp',
             '-s', '1024x768',
@@ -167,9 +135,20 @@ def experiment_ffmpeg_pipe():
             '-pix_fmt', 'rgb24',
             '-vf', 'fps=fps=1/8',
             '-vcodec', 'rawvideo', '-']
+    else:
+        command = [ 'ffmpeg',
+            '-loglevel', 'panic',
+            '-nostats',
+            '-i', video_path,
+            '-s', '1024x768',
+            '-f', 'image2pipe',
+            '-pix_fmt', 'rgb24',
+            '-vcodec', 'rawvideo', '-']
 
     pipe = sp.Popen(command, stdout = sp.PIPE, bufsize=10**8)
+    return pipe
 
+def experiment_ffmpeg_pipe(pipe):
     while True:
         raw_image = pipe.stdout.read(1024*768*3)
         # transform the byte read into a numpy array
@@ -190,57 +169,15 @@ def experiment_ffmpeg_pipe():
         pipe.stdout.flush()    
 
         (prev, next, flow, coverage) = experiment_step(prev, next)
+        send_cloud(flow)
+        send_shadow(coverage)
         send_coverage(coverage)
-        send_optflow(flow)
-
-        # Break if ESC key was pressed
-        if (experiment_display(prev, next, flow, coverage) == False):
-            break
-
-# Run experiment on a video file
-def experiment_video(video_filename):
-    cam = cv2.VideoCapture(video_filename)
-
-    # Get the first image
-    ret, prev_img = cam.read()
-
-    # Loop forever
-    while 1:
-        # Get the next image
-        ret, next_img = cam.read()
-
-        # If there is no next image, break the forever loop
-        if (next_img is None):
-            break
-        
-        (prev, next, flow, coverage) = experiment_step(prev_img, next_img)
-        send_coverage(coverage)
-        send_optflow(flow)
-
-        # Break if ESC key was pressed
-        if (experiment_display(prev, next, flow, coverage) == False):
-            break
-
-        prev_img = next_img
-
-# Run experiment on folder of images
-def experiment_images(folder_name):
-    # Get the first image 
-
-    # Iterate through the rest of the images
-    while True:
-        prev_img = cv2.imread(join(folder_name, 'frame1.jpg'))
-        next_img = cv2.imread(join(folder_name, 'frame2.jpg'))
-
-        (prev, next, flow, coverage) = experiment_step(prev_img, next_img)
 
         # Break if ESC key was pressed
         if (experiment_display(prev, next, flow, coverage) == False):
             break
 
 sock = initialize_socketio(URL_APP_SERVER)
-# experiment_video('opticalFlow/Clouds.mp4')
-# experiment_video('test_images/20191105-134549.117.mp4')
-# experiment_video('test_images/2019-10-19/test10sec.mp4')
-# experiment_livestream('rtsp://192.168.0.10:8554/CH001.sdp')
-experiment_ffmpeg_pipe()
+pipe = create_ffmpeg_pipe(None)
+# pipe = create_ffmpeg_pipe('test_images/2019-10-19/test10sec.mp4')
+experiment_ffmpeg_pipe(pipe)
