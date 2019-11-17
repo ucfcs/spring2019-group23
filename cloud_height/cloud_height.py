@@ -47,15 +47,25 @@ def main():
     dew = current['dewPoint']
     pressure = current['pressure']
     cbh = round(calc_height(t, dew), 2)
-
     # Prepare the payload
     data = {
         "temperature": t,
         "dew_point": dew,
         "barometric_pressure": pressure,
-        "cloud_base_height": cbh
-    }
+        "cloud_base_height": cbh,
 
+        # For archiving
+        "gt_cloud_coverage": current['cloudCover'],
+        "wind_direction": current['windBearing'],
+        "wind_gust": current['windGust'],
+        "wind_speed": current['windSpeed'],
+        "humidity": current['humidity'],
+        "rain_probability": current['precipProbability'],
+        "rain_intensity": current['precipIntensity'],
+        "latitude": parameters['lat'],
+        "longitude": parameters['lon']
+    }
+    
     print("[", datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S"), "] Pressure:", pressure, "mb", "Temp:", t, "Dewpoint:", dew, "CBH =", cbh, "ft/F")
 
     # Emit to server and disconnect

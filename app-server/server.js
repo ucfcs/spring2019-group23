@@ -16,11 +16,12 @@ var app = express(),
   socketio = socketIO(streamServer),
   socketServer = new webSocket.Server({ server: streamServer, path: '/stream' }),
   port = process.env.PORT || 3001,
-  mongodb = 'mongodb://localhost/cloudtracking';
+  mongodb = process.env.MONGODB_URI || 'mongodb://localhost/cloudtracking';
 
 function init_schema() {
   require('./api/models/cloudActivityModel')
   require('./api/models/cloudMotionModel')
+  require('./api/models/weatherDataModel')
 }
 
 function init_routes() {
@@ -53,7 +54,7 @@ function init() {
 
   socketio.on('connection', (client) => {
     client.on('data', (data) => {
-      // TODO: Archive this weather data as it comes in
+      require('./api/controllers/weatherDataController').create(data)
       client.broadcast.emit('data', data)
     })  
 
