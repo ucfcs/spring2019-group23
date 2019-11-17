@@ -60,7 +60,7 @@ def cloud_recognition(img):
     sat = v_sat(img[:,:,2], img[:,:,1], img[:,:,0])
 
     # Change values to make output prettier
-    sat = np.where(sat > SAT_THRESHOLD, 0, .9)
+    sat = np.where(sat > SAT_THRESHOLD, 0, 1)
     output = np.dstack((img, sat))
 
     output *= 255
