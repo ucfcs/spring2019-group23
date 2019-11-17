@@ -17,7 +17,17 @@ class Home extends Component {
       subscribeToData((err, data) => {
         this.setState(data);
       });
+
+      this.state = {
+        cloud_coverage: '',
+        temperature: '',
+        dew_point: '',
+        barometric_pressure: '',
+        cloud_base_height: ''
+      }
+
     }
+
   
     render(){
         return (
