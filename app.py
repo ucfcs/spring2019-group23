@@ -2,10 +2,8 @@ import subprocess as sp
 import base64
 import time
 import sys
-import requests
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import socketio
 
 from os import listdir
@@ -29,6 +27,7 @@ display_images = False
 send_images = True
 do_coverage = True
 do_mask = True
+do_crop = True
 sock = None
 
 # Initialize socket io
@@ -48,7 +47,8 @@ def send_coverage(coverage):
 
     cloud = np.count_nonzero(coverage[:, :, 3] > 0)
     not_cloud = np.count_nonzero(coverage[:, :, 3] == 0)
-    coverage = np.round((cloud / not_cloud) * 100, 2)
+
+    coverage = np.round((cloud / (cloud + not_cloud)) * 100, 2)
     
     sock.emit('data', { "cloud_coverage": coverage })
 
@@ -88,12 +88,25 @@ def experiment_step(prev, next):
         prev = create_mask.apply_mask(prev, mask)
         next = create_mask.apply_mask(next, mask)
 
+    if do_crop is True:
+        w = prev.shape[0]
+        h = prev.shape[1]
+        s = w / MASK_RADIUS_RATIO
+
+        top_edge = int(h/2-s)
+        bottom_edge = int(h/2 + s)
+
+        left_edge = int(w/2-s)
+        right_edge = int (w/2 + s)
+        prev = prev[ left_edge:right_edge  ,  top_edge:bottom_edge , :]
+        next = next[ left_edge:right_edge  ,  top_edge:bottom_edge , :]
+
     # Find the flow vectors for the prev and next images
     flow_vectors = opticalDense.calculate_opt_dense(prev, next)
 
     if do_coverage is True:
-        small = cv2.resize(next, CALC_IM_COVERAGE_SIZE)
-        clouds = coverage.cloud_recognition(small)
+        #small = cv2.resize(next, CALC_IM_COVERAGE_SIZE)
+        clouds = coverage.cloud_recognition(next)
 
     flow = opticalDense.draw_arrows(clouds.copy(), flow_vectors)
 
@@ -150,34 +163,40 @@ def create_ffmpeg_pipe(video_path = None):
 
 def experiment_ffmpeg_pipe(pipe):
     while True:
-        raw_image = pipe.stdout.read(1024*768*3)
-        # transform the byte read into a numpy array
-        prev =  np.fromstring(raw_image, dtype='uint8')
-        prev = prev.reshape((768,1024,3))
-        prev = cv2.cvtColor(prev, cv2.COLOR_RGB2BGR)
-        
-        # throw away the data in the pipe's buffer.
+        try:
+            raw_image = pipe.stdout.read(1024*768*3)
+            # transform the byte read into a numpy array
+            prev =  np.fromstring(raw_image, dtype='uint8')
+            prev = prev.reshape((768,1024,3))
+            prev = cv2.cvtColor(prev, cv2.COLOR_RGB2BGR)
+            
+            # throw away the data in the pipe's buffer.
 
-        pipe.stdout.flush()
+            pipe.stdout.flush()
 
-        raw_image = pipe.stdout.read(1024*768*3)
-        # transform the byte read into a np array
-        next =  np.fromstring(raw_image, dtype='uint8')
-        next = next.reshape((768,1024,3))
-        next = cv2.cvtColor(next, cv2.COLOR_RGB2BGR)
-        # throw away the data in the pipe's buffer.
-        pipe.stdout.flush()    
+            raw_image = pipe.stdout.read(1024*768*3)
+            # transform the byte read into a np array
+            next =  np.fromstring(raw_image, dtype='uint8')
+            next = next.reshape((768,1024,3))
+            next = cv2.cvtColor(next, cv2.COLOR_RGB2BGR)
+            # throw away the data in the pipe's buffer.
+            pipe.stdout.flush()    
 
-        (prev, next, flow, coverage) = experiment_step(prev, next)
-        send_cloud(flow)
-        send_shadow(coverage)
-        send_coverage(coverage)
+            (prev, next, flow, coverage) = experiment_step(prev, next)
+            send_cloud(flow)
+            send_shadow(coverage)
+            send_coverage(coverage)
 
-        # Break if ESC key was pressed
-        if (experiment_display(prev, next, flow, coverage) == False):
+            # Break if ESC key was pressed
+            if (experiment_display(prev, next, flow, coverage) == False):
+                break
+        except:
             break
 
 sock = initialize_socketio(URL_APP_SERVER)
 pipe = create_ffmpeg_pipe(None)
-# pipe = create_ffmpeg_pipe('test_images/2019-10-19/test10sec.mp4')
+# pipe = create_ffmpeg_pipe('/home/jose/Desktop/cloud-tracking/for_real/test_images/2019-10-19/test10sec.mp4')
 experiment_ffmpeg_pipe(pipe)
+
+if sock is not None:
+    sock.disconnect()

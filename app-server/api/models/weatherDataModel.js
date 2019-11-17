@@ -14,59 +14,59 @@ var WeatherDataSchema = new Schema(
     {
         cloud_coverage: {
             type: Number,
-            required: false
+            // required: false
         },
         temperature: {
             type: Number,
-            required: true
+            // required: true
         },
         dew_point: {
             type: Number,
-            required: true
+            // required: true
         },
         barometric_pressure: {
             type: Number,
-            required: true
+            // required: true
         },
         cloud_base_height: {
             type: Number,
-            required: true
+            // required: true
         },
         gt_cloud_coverage: {
             type: Number,
-            required: true
+            // required: true
         },
         wind_direction: {
             type: Number,
-            required: true
+            // required: true
         },
         wind_gust: {
             type: Number,
-            required: true
+            // required: true
         },
         wind_speed: {
             type: Number,
-            required: true
+            // required: true
         },
         humidity: {
             type: Number,
-            required: true
+            // required: true
         },
         rain_probability: {
             type: Number,
-            required: true
+            // required: true
         },
         rain_intensity: {
             type: Number,
-            required: true
+            // required: true
         },
         latitude: {
             type: Number,
-            required: true
+            // required: true
         },
         longitude: {
             type: Number,
-            required: true
+            // required: true
         },
     }, schemaOptions);
 

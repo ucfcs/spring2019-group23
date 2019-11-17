@@ -16,25 +16,13 @@ class Map extends Component {
     super(props);
     
     subscribeToCoverage((err, coverage_img) => {
-      // Create Overlay if not already instantiated and add it to the map
-      if (this.coverageOverlay === undefined) {
-        this.coverageOverlay = L.imageOverlay(coverage_img, this.getImageBounds(false));
-        this.coverageOverlay.addTo(this.map);
-      } else {
-        // If already exists, update the coverage image
-        this.coverageOverlay.setUrl(coverage_img);
-      }
+      // If already exists, update the coverage image
+      this.coverageOverlay.setUrl(coverage_img);
     });
 
     subscribeToShadow((err, shadow_img) => {
-      // Create Overlay if not already instantiated and add it to the map
-      if (this.shadowOverlay === undefined) {
-        this.shadowOverlay = L.imageOverlay(shadow_img, this.getImageBounds(false));
-        this.shadowOverlay.addTo(this.map);
-      } else {
-        // If already exists, update the shadow image
-        this.shadowOverlay.setUrl(shadow_img);
-      }
+      // If already exists, update the shadow image
+      this.shadowOverlay.setUrl(shadow_img);
     });
 
     subscribeToData((err, data) => {
@@ -77,11 +65,24 @@ class Map extends Component {
 
     this.coverageOverlay = undefined;
     this.shadowOverlay = undefined;
+    
+    this.shadowOverlay = L.imageOverlay('', [[28.42, -81.3], [28.43, -81.4]]);
+    this.shadowOverlay.addTo(this.map);
+    
+    this.coverageOverlay = L.imageOverlay('', [[28.42, -81.3], [28.43, -81.4]]);
+    this.coverageOverlay.addTo(this.map);
+    
+    var overlayMaps = {
+      "Shadow": this.shadowOverlay,
+      "Coverage": this.coverageOverlay
+    }
+
+    L.control.layers(null, overlayMaps).addTo(this.map);
   };
 
   render (){
     return (
-      <div id="map" style={{display:"flex", height:"800px"}}></div>
+      <div id="map" style={{display:"flex", height:"400px"}}></div>
     );
   };
 

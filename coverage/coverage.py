@@ -1,7 +1,6 @@
 # Creates an image with only clouds in them from a BGR image
 import numpy as np
 from scipy import signal
-import matplotlib.pyplot as plt
 import cv2
 
 # A few constants that are used in this program
