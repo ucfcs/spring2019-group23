@@ -94,7 +94,7 @@ class Map extends Component {
 
     if (isShadow) {
       NSoffset = Math.cos(azimuth) * Math.tan(sun_altitude) * cbh;
-      EWoffset = Math.sin(azimuth) * Math.tan(sun_altitude) * cbh;
+      EWoffset = -Math.sin(azimuth) * Math.tan(sun_altitude) * cbh;
     }
 
     finalCoordinate[0] = startCoordinate[0] + ((EWdistance + NSoffset) / 362775.6);
