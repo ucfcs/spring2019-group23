@@ -45,7 +45,6 @@ class Map extends Component {
       }
     });
   }
- 
 
   state = {
     cloud_base_height: -1
@@ -89,16 +88,17 @@ class Map extends Component {
   // Input: Starting lat/long coordinate, North/South distance travlled, East/West distance.
   // Return: Final latitude value after travelling the input distance
   // Forumals: https://stackoverflow.com/questions/1253499/simple-calculations-for-working-with-lat-lon-and-km-distance
-  addDistanceToCoordinate(startCoordinate, x_distance, y_distance, sun_altitude, cbh, isShadow) {
+  addDistanceToCoordinate(startCoordinate, NSdistance, EWdistance, sun_altitude, azimuth, cbh, isShadow) {
     var finalCoordinate = [1e9, 1e9];
-    var offset = 0;
+    var NSoffset = 0, EWoffset = 0;
 
     if (isShadow) {
-      offset = Math.tan(sun_altitude) * cbh;
+      NSoffset = Math.cos(azimuth) * Math.tan(sun_altitude) * cbh;
+      EWoffset = Math.sin(azimuth) * Math.tan(sun_altitude) * cbh;
     }
 
-    finalCoordinate[0] = startCoordinate[0] + (y_distance / 362775.6);
-    finalCoordinate[1] = startCoordinate[1] + ((x_distance + offset) /
+    finalCoordinate[0] = startCoordinate[0] + ((EWdistance + NSoffset) / 362775.6);
+    finalCoordinate[1] = startCoordinate[1] + ((NSdistance + EWoffset) /
                          365223.1) * Math.cos(startCoordinate[0] * Math.PI / 180);
     return finalCoordinate;
   }
@@ -106,6 +106,7 @@ class Map extends Component {
   getImageBounds(isShadow) {
     // Returns a {azimuth, altitude} object. We're only interested in altitude
     // sun altitude above the horizon in radians, e.g. 0 at the horizon and PI/2 at the zenith (straight over your head)
+    // Azimuth: 0 is south and Math.PI * 3/4 is northwest
     var sun = SunCalc.getPosition(new Date(), CENTER[0], CENTER[1]);
 
     // ===================================================================================
@@ -119,9 +120,11 @@ class Map extends Component {
     var NSdistance = Math.sin(calibrationAngle) * largeHypo;
     var EWdistance = Math.cos(calibrationAngle) * largeHypo;
 
-    var upperLeftCorner = this.addDistanceToCoordinate(CENTER, -NSdistance, EWdistance, sun.altitude, cloudHeight, isShadow);
+    var upperLeftCorner = this.addDistanceToCoordinate(CENTER, -NSdistance, EWdistance, sun.altitude,
+                                                       sun.azimuth, cloudHeight, isShadow);
 
-    var bottomRightCorner = this.addDistanceToCoordinate(CENTER, NSdistance, -EWdistance, sun.altitude, cloudHeight, isShadow);
+    var bottomRightCorner = this.addDistanceToCoordinate(CENTER, NSdistance, -EWdistance, sun.altitude,
+                                                         sun.azimuth, cloudHeight, isShadow);
     // ===================================================================================
 
     // To be passed to Leaflet to be displayed onto the map
