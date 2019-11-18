@@ -1,128 +1,93 @@
-import copy, numpy as np
-np.random.seed(0)
+import numpy as np
+from datetime import datetime
+import matplotlib.pyplot as plt
+import pandas as pd
+import math
+import pickle
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import LSTM
+from tensorflow.keras.models import model_from_json
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 
-# compute sigmoid nonlinearity
-def sigmoid(x):
-    output = 1/(1+np.exp(-x))
-    return output
+FILENAME = 'data/final-dataset.csv'
+TEST_TRAIN_RATIO = .75
 
-# convert output of sigmoid function to its derivative
-def sigmoid_output_to_derivative(output):
-    return output*(1-output)
+# fix random seed for reproducibility
+np.random.seed(7)
 
+# Load the datasets into pandas dataframes
+# Change the DateTime to UNIX epoch time (seconds)
+# and then mod by 60*60*24 to get time of day in seconds
+df = pd.read_csv(FILENAME, low_memory=False)
+df['date'] = (pd.to_datetime(df['date']) - datetime(1970,1,1)).astype('timedelta64[s]') % (60*60*24)
 
-# training dataset generation
-int2binary = {}
-binary_dim = 8
+# Transform all the data so that the activation function works a lot better
+scaler = MinMaxScaler(feature_range=(0, 1))
+df = scaler.fit_transform(df)
+# df = df[:10000, :]
+	
+# Split into train and test sets
+train_size = int(len(df) * TEST_TRAIN_RATIO)
+train, test = df[0:train_size, :], df[train_size:-1, :]
 
-largest_number = pow(2,binary_dim)
-binary = np.unpackbits(
-    np.array([range(largest_number)],dtype=np.uint8).T,axis=1)
-for i in range(largest_number):
-    int2binary[i] = binary[i]
+def create_dataset(dataset, look_back=1):
+	dataX, dataY = [], []
+	for i in range(len(dataset)-look_back-1):
+		a = dataset[i:(i+look_back), :]
+		dataX.append(a)
+		dataY.append(dataset[i + look_back, :])
+	return np.array(dataX), np.array(dataY)
 
+look_back = 10
+trainX, trainY = create_dataset(train, look_back)
+testX, testY = create_dataset(test, look_back)
 
-# input variables
-alpha = 0.1
-input_dim = 2
-hidden_dim = 16
-output_dim = 1
+# reshape input to be [samples, time steps, features]
+# trainX = np.reshape(trainX, (trainX.shape[0], look_back, trainX.shape[1]))
+# testX = np.reshape(testX, (testX.shape[0], look_back, testX.shape[1]))
 
+# create and fit the LSTM network
+model = Sequential()
+model.add(LSTM(4, input_shape=(10, 12)))
+model.add(Dense(12))
+model.compile(loss='mean_squared_error', optimizer='adam')
+model.fit(trainX, trainY, epochs=10, batch_size=1, verbose=2)
 
-# initialize neural network weights
-synapse_0 = 2*np.random.random((input_dim,hidden_dim)) - 1
-synapse_1 = 2*np.random.random((hidden_dim,output_dim)) - 1
-synapse_h = 2*np.random.random((hidden_dim,hidden_dim)) - 1
+# ================= SAVING THE MODEL =================
+# serialize model to JSON
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model.h5")
+print("Saved model to disk")
+# ================= SAVING THE MODEL =================
+ 
+# # ================= LOADING THE MODEL =================
+# # load json and create model
+# json_file = open('model.json', 'r')
+# loaded_model_json = json_file.read()
+# json_file.close()
+# model = model_from_json(loaded_model_json)
+# # load weights into new model
+# model.load_weights("model.h5")
+# print("Loaded model from disk")
+# # ================= LOADING THE MODEL =================
 
-synapse_0_update = np.zeros_like(synapse_0)
-synapse_1_update = np.zeros_like(synapse_1)
-synapse_h_update = np.zeros_like(synapse_h)
+# make predictions
+trainPredict = model.predict(trainX)
+testPredict = model.predict(testX)
 
-# training logic
-for j in range(10000):
-    
-    # generate a simple addition problem (a + b = c)
-    a_int = np.random.randint(largest_number/2) # int version
-    a = int2binary[a_int] # binary encoding
+# invert predictions
+trainPredict = scaler.inverse_transform(trainPredict)
+trainY = scaler.inverse_transform(trainY)
+testPredict = scaler.inverse_transform(testPredict)
+testY = scaler.inverse_transform(testY)
 
-    b_int = np.random.randint(largest_number/2) # int version
-    b = int2binary[b_int] # binary encoding
-
-    # true answer
-    c_int = a_int + b_int
-    c = int2binary[c_int]
-    
-    # where we'll store our best guess (binary encoded)
-    d = np.zeros_like(c)
-
-    overallError = 0
-    
-    layer_2_deltas = list()
-    layer_1_values = list()
-    layer_1_values.append(np.zeros(hidden_dim))
-    
-    # moving along the positions in the binary encoding
-    for position in range(binary_dim):
-        
-        # generate input and output
-        X = np.array([[a[binary_dim - position - 1],b[binary_dim - position - 1]]])
-        y = np.array([[c[binary_dim - position - 1]]]).T
-
-        # hidden layer (input ~+ prev_hidden)
-        layer_1 = sigmoid(np.dot(X,synapse_0) + np.dot(layer_1_values[-1],synapse_h))
-
-        # output layer (new binary representation)
-        layer_2 = sigmoid(np.dot(layer_1,synapse_1))
-
-        # did we miss?... if so, by how much?
-        layer_2_error = y - layer_2
-        layer_2_deltas.append((layer_2_error)*sigmoid_output_to_derivative(layer_2))
-        overallError += np.abs(layer_2_error[0])
-    
-        # decode estimate so we can print it out
-        d[binary_dim - position - 1] = np.round(layer_2[0][0])
-        
-        # store hidden layer so we can use it in the next timestep
-        layer_1_values.append(copy.deepcopy(layer_1))
-    
-    future_layer_1_delta = np.zeros(hidden_dim)
-    
-    for position in range(binary_dim):
-        
-        X = np.array([[a[position],b[position]]])
-        layer_1 = layer_1_values[-position-1]
-        prev_layer_1 = layer_1_values[-position-2]
-        
-        # error at output layer
-        layer_2_delta = layer_2_deltas[-position-1]
-        # error at hidden layer
-        layer_1_delta = (future_layer_1_delta.dot(synapse_h.T) + layer_2_delta.dot(synapse_1.T)) * sigmoid_output_to_derivative(layer_1)
-
-        # let's update all our weights so we can try again
-        synapse_1_update += np.atleast_2d(layer_1).T.dot(layer_2_delta)
-        synapse_h_update += np.atleast_2d(prev_layer_1).T.dot(layer_1_delta)
-        synapse_0_update += X.T.dot(layer_1_delta)
-        
-        future_layer_1_delta = layer_1_delta
-    
-
-    synapse_0 += synapse_0_update * alpha
-    synapse_1 += synapse_1_update * alpha
-    synapse_h += synapse_h_update * alpha    
-
-    synapse_0_update *= 0
-    synapse_1_update *= 0
-    synapse_h_update *= 0
-    
-    # print out progress
-    if(j % 1000 == 0):
-        print "Error:" + str(overallError)
-        print "Pred:" + str(d)
-        print "True:" + str(c)
-        out = 0
-        for index,x in enumerate(reversed(d)):
-            out += x*pow(2,index)
-        print str(a_int) + " + " + str(b_int) + " = " + str(out)
-        print "------------"
-
-        
+# calculate root mean squared error
+trainScore = math.sqrt(mean_squared_error(trainY[:, 11], trainPredict[:, 11]))
+print('Train Score: %.2f RMSE' % (trainScore))
+testScore = math.sqrt(mean_squared_error(testY[:, 11], testPredict[:, 11]))
+print('Test Score: %.2f RMSE' % (testScore))
