@@ -43,6 +43,7 @@ class Map extends Component {
         const bounds = this.getImageBounds(true)
         this.shadowOverlay.setBounds(bounds);
       }
+
     });
   }
 
@@ -76,6 +77,13 @@ class Map extends Component {
       "Coverage": this.coverageOverlay
     }
 
+    var cameraBoarder = {
+      "color": "#ff7500",
+      "weight": 2,
+      "fillOpacity": .1
+    };
+  
+    L.rectangle(this.getImageBounds(false), cameraBoarder).addTo(this.map);
     L.control.layers(null, overlayMaps).addTo(this.map);
   };
 

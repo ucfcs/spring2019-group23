@@ -20,12 +20,12 @@ def calc_sat(r, g, b):
 # A few constants that are used in this program
 SIDE_LENGTH   = 525   # Used for cropping
 SUN_RADIUS    = 100   # Used to block the sun
-SAT_THRESHOLD = 0.05  # Used for cloud detection
+SAT_THRESHOLD = 0.1  # Used for cloud detection
 SUN_THRESHOLD = 2.975 # Used for sun detection
 FILTER_SIZE   = 10    # Used for noise reduction and locating the sun
 
 # Load an color image in grayscale
-unprocessed_image = Image.open('coverage_testing_images/image084.jpg')
+unprocessed_image = Image.open('coverage_testing_images/12.jpg')
 
 # Crop the image. To get rid of the really distorted edges (because of fisheye)
 h, w = unprocessed_image.size
@@ -60,7 +60,7 @@ if max_intensity >= SUN_THRESHOLD:
     draw.ellipse((x-r, y-r, x+r, y+r), fill=(255,0,0,255))
 
 # Now that the sun's blocked, convert the image to a numpy array
-array_image = np.array(cropped_image).astype(np.double)
+array_image = np.array(unprocessed_image).astype(np.double)
 array_image /= 255
 
 # # The sat. function above will be applied to every pixel. Vectorize the function for speed
