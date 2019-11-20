@@ -11,8 +11,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
 TEST_TRAIN_RATIO  = .75
-LOOK_BACK         = 30
-PREDICTION        = 15
+LOOK_BACK         = 90
+PREDICTION        = 10
 FILENAME          = 'data/final-dataset.csv'
 MODEL_JSON_NAME   = 'models/lstm_' + str(PREDICTION) + 'm_power_predictor.json'
 MODEL_WEIGHT_NAME = 'weights/lstm_' + str(PREDICTION) + 'm_power_predictor.h5'
@@ -30,7 +30,7 @@ df['date'] = pd.to_datetime(df['date']).dt.hour
 # Transform all the data so that the activation function works a lot better
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled_df = scaler.fit_transform(df)
-	
+
 # Split into train and test sets
 train_size = int(len(scaled_df) * TEST_TRAIN_RATIO)
 train, test = scaled_df[0:train_size, :], scaled_df[train_size:-1, :]
@@ -51,12 +51,14 @@ testX, testY = create_dataset(test, LOOK_BACK)
 # ================== TRAINING & SAVING THE MODEL ==================
 # Create and fit the LSTM network
 model = Sequential()
-model.add(LSTM(20, activation='relu', return_sequences=True, input_shape=(LOOK_BACK, scaled_df.shape[1])))
+model.add(LSTM(100, activation='relu', return_sequences=True, input_shape=(LOOK_BACK, scaled_df.shape[1])))
 model.add(Dropout(0.2))
-model.add(LSTM(20, activation='relu'))
+model.add(LSTM(100, activation='relu', return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(100, activation='relu'))
 model.add(Dense(scaled_df.shape[1]))
 model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(trainX, trainY, epochs=10, batch_size=32, verbose=2)
+model.fit(trainX, trainY, epochs=5, batch_size=32, verbose=2)
 
 # Serialize model to JSON
 model_json = model.to_json()
