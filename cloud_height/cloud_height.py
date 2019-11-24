@@ -34,8 +34,17 @@ def main():
     parameters = {
         "pass": '42fa7ad5cbb661f45bdc9a23fdbe25ec',
         # TODO: Un-hardcode this location value
-        "lat": 28.602437,
-        "lon": -81.200071
+        # "lat": 28.602437,
+        # "lon": -81.200071
+	# ???
+#        'lat': 28.607334,
+#        'lon': -81.203706
+	# Garage C
+#         "lat": 28.601985,
+#         "lon": -81.195806
+    # Engineering 2
+        "lat": 28.601722,
+        "lon": -81.198545
     }
 
     # GET current weather data

@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/ucfcs/spring2019-group23#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "fs": "0.0.1-security",
     "longjohn": "^0.2.12",

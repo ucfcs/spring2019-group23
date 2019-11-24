@@ -4,6 +4,7 @@ var express = require('express'),
   path = require('path'),
   http = require('http'),
   webSocket = require('ws'),
+  cors = require('cors'),
   fs = require('fs'),
   socketIO = require('socket.io');
 
@@ -27,8 +28,11 @@ function init_schema() {
 function init_routes() {
   var cloudActivityRoute = require('./api/routes/cloudActivityRoutes'),
     cloudMotionRoute = require('./api/routes/cloudMotionRoutes'),
-    livestreamRoute = require('./api/routes/livestreamRoutes')(socketServer);
+    livestreamRoute = require('./api/routes/livestreamRoutes')(socketServer),
+    weatherDataRoute = require('./api/routes/weatherDataRoutes');
+
   app.use('/activity', cloudActivityRoute)
+  app.use('/weather', weatherDataRoute) 
   app.use('/motion', cloudMotionRoute)
   app.use('/cloudtrackinglivestream', livestreamRoute)
 }
@@ -53,6 +57,11 @@ function init() {
   };
 
   socketio.on('connection', (client) => {
+    client.on('predi', (data) => {
+      require('./api/controllers/cloudMotionController').create(data)
+      client.broadcast.emit('predi', data.cloudPrediction)
+    })
+
     client.on('data', (data) => {
       require('./api/controllers/weatherDataController').create(data)
       client.broadcast.emit('data', data)
@@ -61,6 +70,10 @@ function init() {
     client.on('coverage', (frame) => {
       client.broadcast.emit('coverage', "data:image/png;base64,"+ frame.toString("base64"))
     })
+
+    client.on('coverage_data', (data) => {
+      client.broadcast.emit('coverage_data', data)
+    })  
 
     client.on('shadow', (frame) => {
       client.broadcast.emit('shadow', "data:image/png;base64,"+ frame.toString("base64"))
@@ -71,16 +84,16 @@ function init() {
       console.log(err)
     });
   });
+  
+  init_schema()
+  init_routes()
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(express.static(path.join(__dirname, '/front_end/build')));
+  app.use(express.static(path.join(__dirname, '../front_end/build')));
   app.get('/*', function (req, res) {
-    res.sendFile(path.join(__dirname, '/front_end/build', 'index.html'));
+    res.sendFile(path.join(__dirname, '../front_end/build', 'index.html'));
   });
-
-  init_schema()
-  init_routes()
 
   streamServer.listen(port);
   console.log('REST API server started on: ' + port);

@@ -51,13 +51,13 @@ def mask_sun():
 
 		# *************** PLOTTING DIRECTLY ONTO POLAR GRID WITH AZIMUTH, ALTITUDE input ***************
 		# original: single center point
-		plt.polar((360-azimuth)*rad, 90-altitude, 'ro', markersize=1)
+		plt.polar((azimuth)*rad, 90-altitude, 'ro', markersize=1)
 		# changed: larger sun area mask; center needs to be extracted
 		# plt.polar((360 - azimuth) * rad, 90 - altitude, 'ro', markersize=18)
 		plt.savefig('sunPos.png')
 
 		# *************** Show image under grid to check accuracy ***************
-		axes_coords = [0.1, 0.1, 0.81, 0.81]
+		axes_coords = [0.12, 0.1, 0.8, 0.8]
 		ax_image = fig.add_axes(axes_coords)
 		ax_image.imshow(frame, alpha=0.75)
 		ax_image.axis('off')

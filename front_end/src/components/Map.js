@@ -9,7 +9,8 @@ import SunCalc from 'suncalc';
 const CALIB  = [0.6883333, 0.6883333, 1/6];
 
 // lat/long coordinates of the center of the image. i.e. wherever the camera is placed
-const CENTER = [28.4294, -81.309];
+// const CENTER = [28.4294, -81.309];
+const CENTER = [28.601722, -81.198545]
 
 class Map extends Component {
   constructor(props) {
@@ -29,21 +30,8 @@ class Map extends Component {
       // Update state
       this.setState(data);
 
-      // Zoom onto new bounds
-      const coverageBounds = this.getImageBounds(false)
-      // this.map.fitBounds(coverageBounds)
-
-      // If Coverage Overlay is available, recompute the bounds given new CBH
-      if (!(this.coverageOverlay === undefined)) {
-        this.coverageOverlay.setBounds(coverageBounds);
-      }
-
-      // If Shadow Overlay is available, recompute the bounds given new CBH
-      if (!(this.shadowOverlay === undefined)) {
-        const bounds = this.getImageBounds(true)
-        this.shadowOverlay.setBounds(bounds);
-      }
-
+      // Update Image bounds
+      this.updateImageBounds();
     });
   }
 
@@ -52,44 +40,90 @@ class Map extends Component {
   };
 
   componentDidMount() {
+    fetch('/weather')
+    .then( res => res.json() )
+    .then( (data) => {
+      this.setState(data)
+      this.updateImageBounds()
+    }).catch(console.log)
+
+    // var satellite = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+    //       { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }),
+      var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      }),      
+        // terrain   = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+        //   { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] })
+        terrain =  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+        })
+
+    var baseMaps = {
+        "Satellite": satellite,
+        "Terrain": terrain,
+    };
+
     // Create Map Object
     this.map = L.map('map', {
       center: CENTER,
       zoom: 14,
-      layers: [
-        L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
-        maxZoom: 20,
-        subdomains:['mt0','mt1','mt2','mt3']
-      })]
+      layers: [ satellite, terrain ]
     });
-
-    this.coverageOverlay = undefined;
-    this.shadowOverlay = undefined;
     
-    this.shadowOverlay = L.imageOverlay('', [[28.42, -81.3], [28.43, -81.4]]);
+    this.shadowOverlay = L.imageOverlay('', [[28.42000000001, -81.42000000001], [28.42000000002, -81.42000000002]]);
     this.shadowOverlay.addTo(this.map);
     
-    this.coverageOverlay = L.imageOverlay('', [[28.42, -81.3], [28.43, -81.4]]);
+    this.coverageOverlay = L.imageOverlay('', [[28.42000000001, -81.42000000001], [28.42000000002, -81.42000000002]]);
     this.coverageOverlay.addTo(this.map);
     
-    var overlayMaps = {
-      "Shadow": this.shadowOverlay,
-      "Coverage": this.coverageOverlay
-    }
-
-    var cameraBoarder = {
-      "color": "#ff7500",
+    var coverageBorderOptions = {
+      "color": "#d35fb7",
       "weight": 2,
+      "fill": false,
       "fillOpacity": .1
     };
+
+    var shadowBorderOptions = {
+      "color": "#fefe62",
+      "weight": 2,
+      "fill": false,
+      "fillOpacity": .1
+    };
+        
+    this.coverageBorder = L.rectangle([[28.42000000001, -81.42000000001], [28.42000000002, -81.42000000002]], coverageBorderOptions)
+    this.coverageBorder.addTo(this.map)
+
+    this.shadowBorder = L.rectangle([[28.42000000001, -81.42000000001], [28.42000000002, -81.42000000002]], shadowBorderOptions)
+    this.shadowBorder.addTo(this.map)
+
+    var overlayMaps = {
+      "Shadow": this.shadowOverlay,
+      "Shadow Bounds": this.shadowBorder,
+      "Coverage": this.coverageOverlay,
+      "Coverage Bounds": this.coverageBorder
+    }
   
-    L.rectangle(this.getImageBounds(false), cameraBoarder).addTo(this.map);
-    L.control.layers(null, overlayMaps).addTo(this.map);
+    L.control.layers(baseMaps, overlayMaps).addTo(this.map);
+
+    var north = L.control({position: "bottomright"});
+    north.onAdd = function(map) {
+        var div = L.DomUtil.create("div", "info legend");
+        div.innerHTML = '<img src="north_arrow.png">';
+        return div;
+    }
+    north.addTo(this.map);
+
+    var marker = L.marker(CENTER,
+      {
+        draggable: false,        // Make the icon dragable
+        title: 'Camera Position'
+      });
+    marker.addTo(this.map)
   };
 
   render (){
     return (
-      <div id="map" style={{display:"flex", height:"400px"}}></div>
+      <div id="map" style={{display:"flex", height:"550px"}}></div>
     );
   };
 
@@ -137,6 +171,24 @@ class Map extends Component {
 
     // To be passed to Leaflet to be displayed onto the map
     return [upperLeftCorner, bottomRightCorner];
+  }
+
+  updateImageBounds() {
+    // Zoom onto new bounds
+    const coverageBounds = this.getImageBounds(false)
+    const shadowBounds = this.getImageBounds(true)
+
+    // If Coverage Overlay is available, recompute the bounds given new CBH
+    if (!(this.coverageOverlay === undefined)) {
+      this.coverageOverlay.setBounds(coverageBounds);
+      this.coverageBorder.setBounds(coverageBounds);
+    }
+
+    // If Shadow Overlay is available, recompute the bounds given new CBH
+    if (!(this.shadowOverlay === undefined)) {
+      this.shadowOverlay.setBounds(shadowBounds);
+      this.shadowBorder.setBounds(shadowBounds);
+    }
   }
 }
 
