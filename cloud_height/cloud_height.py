@@ -40,8 +40,11 @@ def main():
 #        'lat': 28.607334,
 #        'lon': -81.203706
 	# Garage C
-         "lat": 28.601985,
-         "lon": -81.195806
+#         "lat": 28.601985,
+#         "lon": -81.195806
+    # Engineering 2
+        "lat": 28.601722,
+        "lon": -81.198545
     }
 
     # GET current weather data

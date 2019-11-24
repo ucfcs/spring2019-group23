@@ -32,8 +32,12 @@ SECONDS_PER_PREDICTION  = 30
 # LONG = -81.203706
 
 # Garage C
-LAT = 28.601985
-LONG = -81.195806
+# LAT = 28.601985
+# LONG = -81.195806
+
+# Engineering II
+LAT = 28.601722
+LONG = -81.198545
 
 # FLAGS -- used to test different functionalities
 display_images = True
@@ -186,7 +190,7 @@ def create_ffmpeg_pipe(video_path = None):
             '-s', '1024x768',
             '-f', 'image2pipe',
             '-pix_fmt', 'rgb24',
-            '-vf', 'fps=fps=1/' + str(SECONDS_PER_FRAME),
+            '-vf', 'fps=fps=1/8',
             '-vcodec', 'rawvideo', '-']
     else:
         command = [ 'ffmpeg',
@@ -266,9 +270,9 @@ def experiment_ffmpeg_pipe(pipe):
 def main():
     global sock
     sock = initialize_socketio(URL_APP_SERVER)
-    # pipe = create_ffmpeg_pipe(None)
+    pipe = create_ffmpeg_pipe(None)
 
-    pipe = create_ffmpeg_pipe('/home/jose/Desktop/cloud-tracking/20191123-120256.showcase.mp4')
+    # pipe = create_ffmpeg_pipe('/home/jose/Desktop/cloud-tracking/20191123-120256.showcase.mp4')
 
     experiment_ffmpeg_pipe(pipe)
     if sock is not None:

@@ -54,13 +54,13 @@ class Home extends Component {
                 <div>
                 <JsmpegPlayer
                     wrapperClassName="video-wrapper"
-                    // videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/stream"
-                    videoUrl="ws://localhost:3001/stream"
+                    videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/stream"
+                    // videoUrl="ws://localhost:3001/stream"
                     options={videoOptions}
                     overlayOptions={videoOverlayOptions}
                 />
                 </div>
-                <Card.Text style={{color:"slategray"}}>Location: Lake Claire; Orlando, FL</Card.Text>
+                <Card.Text style={{color:"slategray"}}>Location: Engineering II, UCF; Orlando, FL</Card.Text>
               </Card.Body>
             </Card>
             <hr />

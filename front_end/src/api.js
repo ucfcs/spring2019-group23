@@ -1,7 +1,7 @@
 import openSocket from 'socket.io-client';
 
-// const API_URL = 'http://cloudtrackingcloudserver.herokuapp.com';
-const API_URL = 'http://localhost:3001/';
+const API_URL = 'http://cloudtrackingcloudserver.herokuapp.com';
+// const API_URL = 'http://localhost:3001/';
 
 const  socket = openSocket(API_URL);
 

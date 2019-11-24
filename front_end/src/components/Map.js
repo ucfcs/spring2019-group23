@@ -10,7 +10,7 @@ const CALIB  = [0.6883333, 0.6883333, 1/6];
 
 // lat/long coordinates of the center of the image. i.e. wherever the camera is placed
 // const CENTER = [28.4294, -81.309];
-const CENTER = [28.607334, -81.203706]
+const CENTER = [28.601722, -81.198545]
 
 class Map extends Component {
   constructor(props) {
