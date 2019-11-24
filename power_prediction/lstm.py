@@ -12,10 +12,10 @@ from sklearn.metrics import mean_squared_error
 
 TEST_TRAIN_RATIO  = .75
 LOOK_BACK         = 90
-PREDICTION        = 10
+PREDICTION        = 15
 FILENAME          = 'data/final-dataset.csv'
-MODEL_JSON_NAME   = 'models/lstm_' + str(PREDICTION) + 'm_power_predictor.json'
-MODEL_WEIGHT_NAME = 'weights/lstm_' + str(PREDICTION) + 'm_power_predictor.h5'
+MODEL_JSON_NAME   = 'models/lstm_' + str(PREDICTION) + 'p_' + str(LOOK_BACK) + '_l_pvp.json'
+MODEL_WEIGHT_NAME = 'weights/lstm_' + str(PREDICTION) + 'p_' + str(LOOK_BACK) + '_l_pvp.h5'
 
 # fix random seed for reproducibility
 np.random.seed(0)
@@ -40,7 +40,7 @@ def create_dataset(dataset, look_back=1):
 	for i in range(look_back, len(dataset) - PREDICTION):
 		a = dataset[i-look_back:i,:]
 		dataX.append(a)
-		dataY.append(dataset[i + PREDICTION,:])
+		dataY.append(dataset[i + PREDICTION - 1,:])
 	return np.array(dataX), np.array(dataY)
 
 trainX, trainY = create_dataset(train, LOOK_BACK)
@@ -51,11 +51,13 @@ testX, testY = create_dataset(test, LOOK_BACK)
 # ================== TRAINING & SAVING THE MODEL ==================
 # Create and fit the LSTM network
 model = Sequential()
-model.add(LSTM(100, activation='relu', return_sequences=True, input_shape=(LOOK_BACK, scaled_df.shape[1])))
+model.add(LSTM(40, activation='relu', return_sequences=True, input_shape=(LOOK_BACK, scaled_df.shape[1])))
 model.add(Dropout(0.2))
-model.add(LSTM(100, activation='relu', return_sequences=True))
+model.add(LSTM(40, activation='relu', return_sequences=True))
 model.add(Dropout(0.2))
-model.add(LSTM(100, activation='relu'))
+model.add(LSTM(40, activation='relu', return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(40, activation='relu'))
 model.add(Dense(scaled_df.shape[1]))
 model.compile(loss='mean_squared_error', optimizer='adam')
 model.fit(trainX, trainY, epochs=5, batch_size=32, verbose=2)

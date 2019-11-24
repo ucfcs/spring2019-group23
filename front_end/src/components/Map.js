@@ -125,8 +125,8 @@ class Map extends Component {
 
     var smallHypo  = Math.sqrt(Math.pow(CALIB[0]/2, 2) + Math.pow(CALIB[1]/2, 2));
     var largeHypo  = smallHypo * cloudHeight / CALIB[2];
-    var NSdistance = Math.sin(calibrationAngle) * largeHypo;
-    var EWdistance = Math.cos(calibrationAngle) * largeHypo;
+    var NSdistance = Math.cos(calibrationAngle) * largeHypo;
+    var EWdistance = Math.sin(calibrationAngle) * largeHypo;
 
     var upperLeftCorner = this.addDistanceToCoordinate(CENTER, -NSdistance, EWdistance, sun.altitude,
                                                        sun.azimuth, cloudHeight, isShadow);
