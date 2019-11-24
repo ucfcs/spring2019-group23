@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import { Row, Col, Card, Alert} from 'react-bootstrap';
+import Cloudmotion from './Cloudmotion';
 import JsmpegPlayer from './JsmpegPlayer';
 import Map from './Map';
-import { subscribeToData } from '../api';
+import { API_URL, subscribeToData, subscribeToCoverageData } from '../api';
+import Moment from 'react-moment';
 
 const videoOptions = {
   poster: 'https://i.imgur.com/FJtImIA.png'
@@ -16,19 +18,31 @@ class Home extends Component {
     
       subscribeToData((err, data) => {
         this.setState(data);
+        this.setState({ time: new Date() })
       });
 
+      subscribeToCoverageData((err, data) => {
+        this.setState(data);
+      });
+      
       this.state = {
         cloud_coverage: '',
         temperature: '',
         dew_point: '',
         barometric_pressure: '',
-        cloud_base_height: ''
+        cloud_base_height: '',
+        time: ''
       }
-
     }
 
-  
+    componentDidMount() {
+      fetch('/weather')
+      .then( res => res.json() )
+      .then( (data) => {
+        this.setState(data)
+      }).catch(console.log)
+    }
+
     render(){
         return (
           <Row noGutters='true'>
@@ -40,12 +54,13 @@ class Home extends Component {
                 <div>
                 <JsmpegPlayer
                     wrapperClassName="video-wrapper"
-                    videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/stream"
+                    // videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/stream"
+                    videoUrl="ws://localhost:3001/stream"
                     options={videoOptions}
                     overlayOptions={videoOverlayOptions}
                 />
                 </div>
-                <Card.Text style={{color:"slategray"}}>Location: Stanton; Orlando, FL</Card.Text>
+                <Card.Text style={{color:"slategray"}}>Location: Lake Claire; Orlando, FL</Card.Text>
               </Card.Body>
             </Card>
             <hr />
@@ -56,20 +71,27 @@ class Home extends Component {
               <Card.Text>Temperature: {this.state.temperature} °F</Card.Text>
               <Card.Text>Dewpoint: {this.state.dew_point} °F</Card.Text>
               <Card.Text>Barometric Pressure: {this.state.barometric_pressure} mb</Card.Text>
-              <Card.Text>Cloud base height (CBH): {this.state.cloud_base_height} ft</Card.Text>
+              <Card.Text>Cloud Base Height (CBH): {this.state.cloud_base_height} ft</Card.Text>
+              <Card.Text style={{ fontStyle: "italic", fontSize: "14px" }}>Last updated:  
+                <Moment format="LLL">{this.state.time}</Moment>
+              </Card.Text>
             </Card.Body>
             </Card>
           </Col>
           <Col sm={8}>
             <Card border="light">
               <Card.Body>
-                <Card.Text style={{color:"slategray"}}>CLOUD MOTION MONITORING</Card.Text>
-                <Alert variant="danger">An alert that appears when clouds are approaching the sun.</Alert>
+                
+                <Card.Text style={{color:"slategray"}}>CLOUD MONITORING</Card.Text>
+                
+                <React.Fragment>
+                  <Cloudmotion />
+                </React.Fragment>
+
                 <React.Fragment>
                   <Map />
                 </React.Fragment>
-                <div style={{whiteSpace:"pre-wrap"}}>{`
-                `}</div>
+                <div style={{whiteSpace:"pre-wrap"}}>{``}</div>
               </Card.Body>
             </Card>
           </Col>

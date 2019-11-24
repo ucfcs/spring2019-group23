@@ -11,21 +11,20 @@ const schemaOptions  = {
 };
 
 var CloudMotionSchema = new Schema({
+    cloudPrediction: {
+        type: Map,
+        of: Number
+    },
     image: {
         data: {
             type: Buffer,
-            required: true
+            required: false
         },
         contentType: {
             type: String,
-            required: true
+            required: false
         }
     },
-    // If we have an alert associated with this cloud motion image, here it goes
-    alert: {
-        type: String,
-        required: false
-    }
 }, schemaOptions);
 
 module.exports = mongoose.model('CloudMotion', CloudMotionSchema);

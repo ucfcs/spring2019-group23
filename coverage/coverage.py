@@ -5,7 +5,7 @@ import cv2
 
 # A few constants that are used in this program
 SUN_RADIUS    = 50   # Used to block the sun
-SAT_THRESHOLD = 0.075  # Used for cloud detection
+SAT_THRESHOLD = 0.08  # Used for cloud detection
 SUN_THRESHOLD = 2.9375 # Used for sun detection
 FILTER_SIZE   = 25    # Used for noise reduction and locating the sun
 

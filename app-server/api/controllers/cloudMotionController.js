@@ -25,7 +25,16 @@ exports.create_motion = function (req, res) {
    });
 };
 
-/// TODO: Get the latest motion image that was uploaded
-exports.get_latest_motion = function (req, res) {
-    res.end()
+exports.create = function(data) {
+  var new_task = new CloudMotion(data);
+  new_task.save(function(err, task) {
+    if (err)
+        console.log(err)
+  });
+};
+
+exports.get_latest = function (req, res) {
+    CloudMotion.find().sort({ "time": -1 }).limit(1).exec((err, doc) => {
+      res.json(doc)
+    });
 };

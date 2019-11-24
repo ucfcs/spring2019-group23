@@ -17,3 +17,11 @@ exports.create = function(data) {
         console.log(err)
   });
 };
+
+exports.get_latest = function(req, res) {
+  WeatherData.find().sort({ "time": -1 }).limit(1).exec((err, doc) => {
+    if (!err) {
+      res.json(doc[0])
+    }
+  });
+}
