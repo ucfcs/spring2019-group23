@@ -4,6 +4,8 @@ import NavBar from './components/NavBar.js';
 import Home from './components/Home'
 import Archive from './components/Archive'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-dates/lib/css/_datepicker.css';
+import 'react-dates/initialize';
 //import Layout from './components/Layout.js';
 
 class App extends Component {
@@ -15,7 +17,7 @@ class App extends Component {
           {/*<Layout>*/}
             <Switch>
               <Route exact path='/' component={Home} />
-              {/* <Route path='/archive' component={Archive} /> */}
+              <Route path='/archive' component={Archive} />
             </Switch>
           {/*</Layout>*/}
         </BrowserRouter>

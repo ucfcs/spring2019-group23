@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert } from 'react-bootstrap';
+// import { Alert } from 'react-bootstrap';
 import { Bar } from 'react-chartjs-2';
 import { subscribeToPredictions } from '../api'
 

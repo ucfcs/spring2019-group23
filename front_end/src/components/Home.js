@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Row, Col, Card, Alert} from 'react-bootstrap';
+import { Row, Col, Card } from 'react-bootstrap';
 import Cloudmotion from './Cloudmotion';
 import JsmpegPlayer from './JsmpegPlayer';
 import Map from './Map';
-import { API_URL, subscribeToData, subscribeToCoverageData } from '../api';
+import { subscribeToData, subscribeToCoverageData } from '../api';
 import Moment from 'react-moment';
 
 const videoOptions = {
