@@ -38,3 +38,17 @@ exports.get_latest = function (req, res) {
       res.json(doc)
     });
 };
+
+exports.get_range = function(req, res) {
+  res.writeHead(200, {
+    'Content-Type': 'text/csv'
+  });
+
+  const fromDate = new Date(req.query.from_date);
+  const toDate = new Date(req.query.to_date);
+
+  CloudMotion.find({ "time" : {"$gte": fromDate, "$lt": toDate} }).sort({ "time": 1 })
+    .stream()
+    .pipe(CloudMotion.csvTransformStream())
+    .pipe(res);
+}

@@ -65,7 +65,7 @@ function init() {
     client.on('data', (data) => {
       require('./api/controllers/weatherDataController').create(data)
       client.broadcast.emit('data', data)
-    })  
+    })
 
     client.on('coverage', (frame) => {
       client.broadcast.emit('coverage', "data:image/png;base64,"+ frame.toString("base64"))
@@ -73,7 +73,7 @@ function init() {
 
     client.on('coverage_data', (data) => {
       client.broadcast.emit('coverage_data', data)
-    })  
+    })
 
     client.on('shadow', (frame) => {
       client.broadcast.emit('shadow', "data:image/png;base64,"+ frame.toString("base64"))
