@@ -20,18 +20,18 @@ var app = express(),
   mongodb = process.env.MONGODB_URI || 'mongodb://localhost/cloudtracking';
 
 function init_schema() {
-  require('./api/models/cloudActivityModel')
+  require('./api/models/cloudCoverageModel')
   require('./api/models/cloudMotionModel')
   require('./api/models/weatherDataModel')
 }
 
 function init_routes() {
-  var cloudActivityRoute = require('./api/routes/cloudActivityRoutes'),
+  var cloudCoverageRoute = require('./api/routes/cloudCoverageRoutes'),
     cloudMotionRoute = require('./api/routes/cloudMotionRoutes'),
     livestreamRoute = require('./api/routes/livestreamRoutes')(socketServer),
     weatherDataRoute = require('./api/routes/weatherDataRoutes');
 
-  app.use('/activity', cloudActivityRoute)
+  app.use('/coverage', cloudCoverageRoute)
   app.use('/weather', weatherDataRoute) 
   app.use('/motion', cloudMotionRoute)
   app.use('/cloudtrackinglivestream', livestreamRoute)
@@ -66,13 +66,14 @@ function init() {
       require('./api/controllers/weatherDataController').create(data)
       client.broadcast.emit('data', data)
     })
-
+    
+    client.on('coverage_data', (data) => {
+      require('./api/controllers/cloudCoverageController').create(data)
+      client.broadcast.emit('coverage_data', data)
+    })
+    
     client.on('coverage', (frame) => {
       client.broadcast.emit('coverage', "data:image/png;base64,"+ frame.toString("base64"))
-    })
-
-    client.on('coverage_data', (data) => {
-      client.broadcast.emit('coverage_data', data)
     })
 
     client.on('shadow', (frame) => {

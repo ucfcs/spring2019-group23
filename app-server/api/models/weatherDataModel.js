@@ -13,10 +13,6 @@ const schemaOptions  = {
 
 var WeatherDataSchema = new Schema(
     {
-        cloud_coverage: {
-            type: Number,
-            // required: false
-        },
         temperature: {
             type: Number,
             // required: true
@@ -73,7 +69,6 @@ var WeatherDataSchema = new Schema(
 
 WeatherDataSchema.plugin(mongoose_csv, {
     headers: ['DateTime',
-            'Cloud Coverage',
             'Temperature',
             'Dew Point',
             'Barometric Pressure',
@@ -88,7 +83,6 @@ WeatherDataSchema.plugin(mongoose_csv, {
             'Latitude',
             'Longitude'],
     constraints: {
-      'Cloud Coverage': 'cloud_coverage',
       'Temperature': 'temperature',
       'Dew Point': 'dew_point',
       'Barometric Pressure': 'barometric_pressure',
