@@ -36,6 +36,12 @@ class Home extends Component {
     }
 
     componentDidMount() {
+      fetch('/coverage')
+      .then( res => res.json() )
+      .then( (data) => {
+        this.setState(data)
+      }).catch(console.log)
+      
       fetch('/weather')
       .then( res => res.json() )
       .then( (data) => {
