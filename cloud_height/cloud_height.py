@@ -28,7 +28,7 @@ def calc_height(temp, dew):
 
 def main():
     # Initialize socket io connection to app server
-    sock = initialize_socketio('http://cloudtrackingcloudserver.herokuapp.com/')
+    sock = initialize_socketio('http://cloud-track.herokuapp.com/')
     # sock = initialize_socketio('http://localhost:3001/')
 
     parameters = {

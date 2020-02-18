@@ -60,7 +60,7 @@ class Home extends Component {
                 <div>
                 <JsmpegPlayer
                     wrapperClassName="video-wrapper"
-                    videoUrl="ws://cloudtrackingcloudserver.herokuapp.com/stream"
+                    videoUrl="ws://cloud-track.herokuapp.com/stream"
                     // videoUrl="ws://localhost:3001/stream"
                     options={videoOptions}
                     overlayOptions={videoOverlayOptions}
