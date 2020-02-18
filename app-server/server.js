@@ -91,9 +91,9 @@ function init() {
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(express.static(path.join(__dirname, '../front_end/build')));
+  app.use(express.static(path.join(__dirname, 'front_end/build')));
   app.get('/*', function (req, res) {
-    res.sendFile(path.join(__dirname, '../front_end/build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'front_end/build', 'index.html'));
   });
 
   streamServer.listen(port);
